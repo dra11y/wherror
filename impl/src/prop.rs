@@ -42,6 +42,12 @@ impl Enum<'_> {
             .any(|variant| variant.backtrace_field().is_some())
     }
 
+    pub(crate) fn has_location(&self) -> bool {
+        self.variants
+            .iter()
+            .any(|variant| variant.location_field().is_some())
+    }
+
     pub(crate) fn has_display(&self) -> bool {
         self.attrs.display.is_some()
             || self.attrs.transparent.is_some()

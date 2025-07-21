@@ -198,6 +198,28 @@ fn impl_struct(input: Struct) -> TokenStream {
         })
     });
 
+    let location_impl = input.location_field().map(|location_field| {
+        let location = &location_field.member;
+        let body = if type_is_option(location_field.ty) {
+            quote! {
+                self.#location
+            }
+        } else {
+            quote! {
+                Some(self.#location)
+            }
+        };
+        quote! {
+            #[allow(unused_qualifications)]
+            #[automatically_derived]
+            impl #impl_generics #ty #ty_generics #where_clause {
+                pub fn location(&self) -> Option<&'static ::core::panic::Location<'static>> {
+                    #body
+                }
+            }
+        }
+    });
+
     if input.generics.type_params().next().is_some() {
         let self_token = <Token![Self]>::default();
         error_inferred_bounds.insert(self_token, Trait::Debug);
@@ -214,6 +236,7 @@ fn impl_struct(input: Struct) -> TokenStream {
         }
         #display_impl
         #from_impl
+        #location_impl
     }
 }
 
@@ -476,6 +499,46 @@ fn impl_enum(input: Enum) -> TokenStream {
         })
     });
 
+    let location_impl = if input.has_location() {
+        let arms = input.variants.iter().map(|variant| {
+            let ident = &variant.ident;
+            if let Some(location_field) = variant.location_field() {
+                let location = &location_field.member;
+                let var_location = quote!(location);
+                let body = if type_is_option(location_field.ty) {
+                    quote! {
+                        #var_location
+                    }
+                } else {
+                    quote! {
+                        Some(#var_location)
+                    }
+                };
+                quote! {
+                    #ty::#ident {#location: #var_location, ..} => #body,
+                }
+            } else {
+                quote! {
+                    #ty::#ident {..} => None,
+                }
+            }
+        });
+        Some(quote! {
+            #[allow(unused_qualifications)]
+            #[automatically_derived]
+            impl #impl_generics #ty #ty_generics #where_clause {
+                pub fn location(&self) -> Option<&'static ::core::panic::Location<'static>> {
+                    #[allow(deprecated)]
+                    match self {
+                        #(#arms)*
+                    }
+                }
+            }
+        })
+    } else {
+        None
+    };
+
     if input.generics.type_params().next().is_some() {
         let self_token = <Token![Self]>::default();
         error_inferred_bounds.insert(self_token, Trait::Debug);
@@ -492,6 +555,7 @@ fn impl_enum(input: Enum) -> TokenStream {
         }
         #display_impl
         #(#from_impls)*
+        #location_impl
     }
 }
 
