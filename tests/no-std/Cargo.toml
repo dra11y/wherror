@@ -1,5 +1,5 @@
 [package]
-name = "thiserror_no_std_test"
+name = "wherror_no_std_test"
 version = "0.0.0"
 authors = ["David Tolnay <dtolnay@gmail.com>"]
 edition = "2021"
@@ -9,4 +9,4 @@ publish = false
 path = "test.rs"
 
 [dependencies]
-thiserror = { path = "../..", default-features = false }
+wherror = { path = "../..", default-features = false }

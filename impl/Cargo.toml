@@ -1,11 +1,11 @@
 [package]
-name = "thiserror-impl"
+name = "wherror-impl"
 version = "2.0.12"
-authors = ["David Tolnay <dtolnay@gmail.com>"]
-description = "Implementation detail of the `thiserror` crate"
+authors = ["Tom <tom@dra11y.com>", "David Tolnay <dtolnay@gmail.com>"]
+description = "Implementation detail of the `wherror` crate (fork of thiserror with Location support)"
 edition = "2021"
 license = "MIT OR Apache-2.0"
-repository = "https://github.com/dtolnay/thiserror"
+repository = "https://github.com/dra11y/wherror"
 rust-version = "1.61"
 
 [lib]
@@ -18,10 +18,4 @@ syn = "2.0.87"
 
 [package.metadata.docs.rs]
 targets = ["x86_64-unknown-linux-gnu"]
-rustdoc-args = [
-    "--generate-link-to-definition",
-    "--extern-html-root-url=core=https://doc.rust-lang.org",
-    "--extern-html-root-url=alloc=https://doc.rust-lang.org",
-    "--extern-html-root-url=std=https://doc.rust-lang.org",
-    "--extern-html-root-url=proc_macro=https://doc.rust-lang.org",
-]
+rustdoc-args = ["--generate-link-to-definition", "--extern-html-root-url=core=https://doc.rust-lang.org", "--extern-html-root-url=alloc=https://doc.rust-lang.org", "--extern-html-root-url=std=https://doc.rust-lang.org", "--extern-html-root-url=proc_macro=https://doc.rust-lang.org"]

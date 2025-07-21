@@ -1,6 +1,6 @@
 #![no_std]
 
-use thiserror::Error;
+use wherror::Error;
 
 #[derive(Error, Debug)]
 pub enum Error {

@@ -1,5 +1,5 @@
 use std::{fmt::Debug, io, panic::Location};
-use thiserror::Error;
+use wherror::Error;
 
 #[derive(Error, Debug)]
 enum MError {

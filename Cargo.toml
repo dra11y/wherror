@@ -1,14 +1,14 @@
 [package]
-name = "thiserror"
+name = "wherror"
 version = "2.0.12"
-authors = ["David Tolnay <dtolnay@gmail.com>"]
+authors = ["Tom Grushka <tom@dra11y.com>", "David Tolnay <dtolnay@gmail.com>"]
 categories = ["rust-patterns"]
-description = "derive(Error)"
-documentation = "https://docs.rs/thiserror"
+description = "Fork of thiserror derive(Error) with std::panic::Location support"
+documentation = "https://docs.rs/wherror"
 edition = "2021"
-keywords = ["error", "error-handling", "derive"]
+keywords = ["error", "error-handling", "derive", "location", "panic"]
 license = "MIT OR Apache-2.0"
-repository = "https://github.com/dtolnay/thiserror"
+repository = "https://github.com/dra11y/wherror"
 rust-version = "1.61"
 
 [features]
@@ -28,7 +28,7 @@ default = ["std"]
 std = []
 
 [dependencies]
-thiserror-impl = { version = "=2.0.12", path = "impl" }
+wherror-impl = { version = "=2.0.12", path = "impl", package = "wherror-impl" }
 
 [dev-dependencies]
 anyhow = "1.0.73"
@@ -41,9 +41,4 @@ members = ["impl", "tests/no-std"]
 
 [package.metadata.docs.rs]
 targets = ["x86_64-unknown-linux-gnu"]
-rustdoc-args = [
-    "--generate-link-to-definition",
-    "--extern-html-root-url=core=https://doc.rust-lang.org",
-    "--extern-html-root-url=alloc=https://doc.rust-lang.org",
-    "--extern-html-root-url=std=https://doc.rust-lang.org",
-]
+rustdoc-args = ["--generate-link-to-definition", "--extern-html-root-url=core=https://doc.rust-lang.org", "--extern-html-root-url=alloc=https://doc.rust-lang.org", "--extern-html-root-url=std=https://doc.rust-lang.org"]

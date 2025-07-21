@@ -1,4 +1,4 @@
-use thiserror::Error;
+use wherror::Error;
 
 #[derive(Debug)]
 pub struct NotError;

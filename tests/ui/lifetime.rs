@@ -1,5 +1,5 @@
 use core::fmt::Debug;
-use thiserror::Error;
+use wherror::Error;
 
 #[derive(Error, Debug)]
 #[error("error")]

@@ -2,7 +2,7 @@
 
 use core::fmt::{self, Display};
 use std::io;
-use thiserror::Error;
+use wherror::Error;
 
 macro_rules! unimplemented_display {
     ($ty:ty) => {

@@ -1,4 +1,4 @@
-//! [![github]](https://github.com/dtolnay/thiserror)&ensp;[![crates-io]](https://crates.io/crates/thiserror)&ensp;[![docs-rs]](https://docs.rs/thiserror)
+//! [![github]](https://github.com/dra11y/wherror)&ensp;[![crates-io]](https://crates.io/crates/wherror)&ensp;[![docs-rs]](https://docs.rs/wherror)
 //!
 //! [github]: https://img.shields.io/badge/github-8da0cb?style=for-the-badge&labelColor=555555&logo=github
 //! [crates-io]: https://img.shields.io/badge/crates.io-fc8d62?style=for-the-badge&labelColor=555555&logo=rust
@@ -7,7 +7,8 @@
 //! <br>
 //!
 //! This library provides a convenient derive macro for the standard library's
-//! [`std::error::Error`] trait.
+//! [`std::error::Error`] trait. This is a fork of [thiserror](https://github.com/dtolnay/thiserror)
+//! with added support for [`std::panic::Location`] capture.
 //!
 //! <br>
 //!
@@ -15,7 +16,7 @@
 //!
 //! ```rust
 //! # use std::io;
-//! use thiserror::Error;
+//! use wherror::Error;
 //!
 //! #[derive(Error, Debug)]
 //! pub enum DataStoreError {
@@ -61,7 +62,7 @@
 //!
 //!   ```rust
 //!   # use core::i32;
-//!   # use thiserror::Error;
+//!   # use wherror::Error;
 //!   #
 //!   #[derive(Error, Debug)]
 //!   pub enum Error {
@@ -75,7 +76,7 @@
 //!   as `.0`.
 //!
 //!   ```rust
-//!   # use thiserror::Error;
+//!   # use wherror::Error;
 //!   #
 //!   # fn first_char(s: &String) -> char {
 //!   #     s.chars().next().unwrap()
@@ -107,10 +108,10 @@
 //!   ```rust
 //!   # use core::fmt::{self, Display};
 //!   # use std::io;
-//!   # use thiserror::Error;
+//!   # use wherror::Error;
 //!   #
 //!   # mod globset {
-//!   #     #[derive(thiserror::Error, Debug)]
+//!   #     #[derive(wherror::Error, Debug)]
 //!   #     #[error("...")]
 //!   #     pub struct Error;
 //!   # }
@@ -140,7 +141,7 @@
 //!
 //!   ```rust
 //!   # use core::fmt::{self, Display};
-//!   # use thiserror::Error;
+//!   # use wherror::Error;
 //!   #
 //!   #[derive(Error, Debug)]
 //!   pub struct MyError {
@@ -213,7 +214,7 @@
 //!   "anything else" variant.
 //!
 //!   ```
-//!   # use thiserror::Error;
+//!   # use wherror::Error;
 //!   #
 //!   #[derive(Error, Debug)]
 //!   pub enum MyError {
@@ -231,7 +232,7 @@
 //!   able to evolve without breaking the crate's public API.
 //!
 //!   ```
-//!   # use thiserror::Error;
+//!   # use wherror::Error;
 //!   #
 //!   // PublicError is public, but opaque and easy to keep compatible.
 //!   #[derive(Error, Debug)]
@@ -281,7 +282,7 @@ mod display;
 mod provide;
 mod var;
 
-pub use thiserror_impl::*;
+pub use wherror_impl::*;
 
 // Not public API.
 #[doc(hidden)]

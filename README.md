@@ -1,29 +1,50 @@
-derive(Error)
-=============
+wherror
+========
 
-[<img alt="github" src="https://img.shields.io/badge/github-dtolnay/thiserror-8da0cb?style=for-the-badge&labelColor=555555&logo=github" height="20">](https://github.com/dtolnay/thiserror)
-[<img alt="crates.io" src="https://img.shields.io/crates/v/thiserror.svg?style=for-the-badge&color=fc8d62&logo=rust" height="20">](https://crates.io/crates/thiserror)
-[<img alt="docs.rs" src="https://img.shields.io/badge/docs.rs-thiserror-66c2a5?style=for-the-badge&labelColor=555555&logo=docs.rs" height="20">](https://docs.rs/thiserror)
-[<img alt="build status" src="https://img.shields.io/github/actions/workflow/status/dtolnay/thiserror/ci.yml?branch=master&style=for-the-badge" height="20">](https://github.com/dtolnay/thiserror/actions?query=branch%3Amaster)
+[<img alt="github" src="https://img.shields.io/badge/github-dra11y/wherror-8da0cb?style=for-the-badge&labelColor=555555&logo=github" height="20">](https://github.com/dra11y/wherror)
+[<img alt="crates.io" src="https://img.shields.io/crates/v/wherror.svg?style=for-the-badge&color=fc8d62&logo=rust" height="20">](https://crates.io/crates/wherror)
+[<img alt="docs.rs" src="https://img.shields.io/badge/docs.rs-wherror-66c2a5?style=for-the-badge&labelColor=555555&logo=docs.rs" height="20">](https://docs.rs/wherror)
 
-This library provides a convenient derive macro for the standard library's
+Fork of [thiserror] `derive(Error)` with [`std::panic::Location`]
+support. This library provides a convenient derive macro for the standard library's
 [`std::error::Error`] trait.
 
+This fork was created because the location support feature ([thiserror#291]) has been 
+waiting for over a year to be merged.
+
 [`std::error::Error`]: https://doc.rust-lang.org/std/error/trait.Error.html
+[`std::panic::Location`]: https://doc.rust-lang.org/std/panic/struct.Location.html
+[thiserror]: https://github.com/dtolnay/thiserror
+[thiserror#291]: https://github.com/dtolnay/thiserror/pull/291
 
 ```toml
 [dependencies]
-thiserror = "2"
+wherror = "2"
 ```
 
-*Compiler support: requires rustc 1.61+*
+## Location Support
 
-<br>
+Add a field of type `&'static std::panic::Location<'static>` to automatically capture where errors are created:
+
+```rust
+use wherror::Error;
+
+#[derive(Error, Debug)]
+#[error("Failed at {location}: {source}")]
+pub struct MyError {
+    #[from]
+    source: std::io::Error,
+    location: &'static std::panic::Location<'static>,  // Auto-populated
+}
+
+// Location automatically captured when using `?`
+std::fs::read_to_string("file.txt")?;
+```
 
 ## Example
 
 ```rust
-use thiserror::Error;
+use wherror::Error;
 
 #[derive(Error, Debug)]
 pub enum DataStoreError {
@@ -45,10 +66,10 @@ pub enum DataStoreError {
 
 ## Details
 
-- Thiserror deliberately does not appear in your public API. You get the same
-  thing as if you had written an implementation of `std::error::Error` by hand,
-  and switching from handwritten impls to thiserror or vice versa is not a
-  breaking change.
+Wherror deliberately does not appear in your public API. You get the same
+thing as if you had written an implementation of `std::error::Error` by hand,
+and switching from handwritten impls to thiserror or vice versa is not a
+breaking change.
 
 - Errors may be enums, structs with named fields, tuple structs, or unit
   structs.
@@ -92,7 +113,7 @@ pub enum DataStoreError {
   attribute.
 
   The variant using `#[from]` must not contain any other fields beyond the
-  source error (and possibly a backtrace &mdash; see below). Usually `#[from]`
+  source error (and possibly a location or backtrace &mdash; see below). Usually `#[from]`
   fields are unnamed, but `#[from]` is allowed on a named field too.
 
   ```rust
@@ -119,6 +140,20 @@ pub enum DataStoreError {
       msg: String,
       #[source]  // optional if field name is `source`
       source: anyhow::Error,
+  }
+  ```
+
+- Fields of type `&'static std::panic::Location<'static>` are automatically
+  populated with the call site location when errors are created via `From` trait
+  conversion. This works seamlessly with the `?` operator for precise error tracking.
+
+  ```rust
+  #[derive(Error, Debug)]
+  #[error("Parse error at {location}: {source}")]
+  pub struct ParseError {
+      #[from]
+      source: std::num::ParseIntError,
+      location: &'static std::panic::Location<'static>,  // automatically detected
   }
   ```
 
@@ -212,7 +247,7 @@ pub enum DataStoreError {
 
 ## Comparison to anyhow
 
-Use thiserror if you care about designing your own dedicated error type(s) so
+Use wherror if you care about designing your own dedicated error type(s) so
 that the caller receives exactly the information that you choose in the event of
 failure. This most often applies to library-like code. Use [Anyhow] if you don't
 care what error type your functions return, you just want it to be easy. This is
@@ -236,3 +271,13 @@ Unless you explicitly state otherwise, any contribution intentionally submitted
 for inclusion in this crate by you, as defined in the Apache-2.0 license, shall
 be dual licensed as above, without any additional terms or conditions.
 </sub>
+
+<br>
+
+#### Attribution
+
+<sup>
+Fork of <a href="https://github.com/dtolnay/thiserror">thiserror</a> by David Tolnay,
+with location support by <a href="https://github.com/onlycs">Angad Tendulkar</a>
+from <a href="https://github.com/dtolnay/thiserror/pull/291">thiserror#291</a>.
+</sup>

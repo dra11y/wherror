@@ -14,7 +14,7 @@ pub(crate) fn expand(input: &DeriveInput, error: syn::Error) -> TokenStream {
 
         #[allow(unused_qualifications)]
         #[automatically_derived]
-        impl #impl_generics ::thiserror::__private::Error for #ty #ty_generics #where_clause
+        impl #impl_generics ::wherror::__private::Error for #ty #ty_generics #where_clause
         where
             // Work around trivial bounds being unstable.
             // https://github.com/rust-lang/rust/issues/48214

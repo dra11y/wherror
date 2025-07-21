@@ -1,7 +1,7 @@
 // https://github.com/dtolnay/thiserror/issues/163
 
 use std::backtrace::Backtrace;
-use thiserror::Error;
+use wherror::Error;
 
 #[derive(Error, Debug)]
 #[error("...")]

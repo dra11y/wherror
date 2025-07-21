@@ -2,7 +2,7 @@
 
 use core::fmt::{self, Debug, Display};
 use core::str::FromStr;
-use thiserror::Error;
+use wherror::Error;
 
 pub struct NoFormat;
 

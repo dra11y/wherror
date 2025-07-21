@@ -145,7 +145,7 @@ impl Display<'_> {
             let wrapped_binding_value = if bonus_display {
                 quote_spanned!(span=> #binding_value.as_display())
             } else if bound == Trait::Pointer {
-                quote!(::thiserror::__private::Var(#binding_value))
+                quote!(::wherror::__private::Var(#binding_value))
             } else {
                 binding_value.into_token_stream()
             };

@@ -3,7 +3,7 @@
 use core::fmt::Display;
 use ref_cast::RefCast;
 use std::path::{Path, PathBuf};
-use thiserror::Error;
+use wherror::Error;
 
 #[derive(Error, Debug)]
 #[error("failed to read '{file}'")]
