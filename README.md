@@ -147,6 +147,9 @@ breaking change.
   populated with the call site location when errors are created via `From` trait
   conversion. This works seamlessly with the `?` operator for precise error tracking.
 
+  For errors with location fields, a `location()` method is generated that returns
+  `Option<&'static std::panic::Location<'static>>`.
+
   ```rust
   #[derive(Error, Debug)]
   #[error("Parse error at {location}: {source}")]
@@ -154,6 +157,10 @@ breaking change.
       #[from]
       source: std::num::ParseIntError,
       location: &'static std::panic::Location<'static>,  // automatically detected
+  }
+
+  if let Some(location) = error.location() {
+      eprintln!("Error at {}:{}", location.file(), location.line());
   }
   ```
 
