@@ -167,9 +167,16 @@ fn impl_struct(input: Struct) -> TokenStream {
         let span = from_field.attrs.from.unwrap().span;
         let backtrace_field = input.distinct_backtrace_field();
         let from = unoptional_type(from_field.ty);
+        let track_caller = input.location_field().map(|_| quote!(#[track_caller]));
         let source_var = Ident::new("source", span);
-        let body = from_initializer(from_field, backtrace_field, &source_var);
+        let body = from_initializer(
+            from_field,
+            backtrace_field,
+            &source_var,
+            input.location_field(),
+        );
         let from_function = quote! {
+            #track_caller
             fn from(#source_var: #from) -> Self {
                 #ty #body
             }
@@ -440,11 +447,14 @@ fn impl_enum(input: Enum) -> TokenStream {
         let from_field = variant.from_field()?;
         let span = from_field.attrs.from.unwrap().span;
         let backtrace_field = variant.distinct_backtrace_field();
+        let location_field = variant.location_field();
         let variant = &variant.ident;
         let from = unoptional_type(from_field.ty);
         let source_var = Ident::new("source", span);
-        let body = from_initializer(from_field, backtrace_field, &source_var);
+        let body = from_initializer(from_field, backtrace_field, &source_var, location_field);
+        let track_caller = location_field.map(|_| quote!(#[track_caller]));
         let from_function = quote! {
+            #track_caller
             fn from(#source_var: #from) -> Self {
                 #ty::#variant #body
             }
@@ -522,6 +532,7 @@ fn from_initializer(
     from_field: &Field,
     backtrace_field: Option<&Field>,
     source_var: &Ident,
+    location_field: Option<&Field>,
 ) -> TokenStream {
     let from_member = &from_field.member;
     let some_source = if type_is_option(from_field.ty) {
@@ -541,9 +552,23 @@ fn from_initializer(
             }
         }
     });
+    let location = location_field.map(|location_field| {
+        let location_member = &location_field.member;
+
+        if type_is_option(location_field.ty) {
+            quote! {
+                #location_member: ::core::option::Option::Some(::core::panic::Location::caller()),
+            }
+        } else {
+            quote! {
+                #location_member: ::core::convert::From::from(::core::panic::Location::caller()),
+            }
+        }
+    });
     quote!({
         #from_member: #some_source,
         #backtrace
+        #location
     })
 }
 
