@@ -258,7 +258,7 @@
 //!   [`anyhow`]: https://github.com/dtolnay/anyhow
 
 #![no_std]
-#![doc(html_root_url = "https://docs.rs/thiserror/2.0.12")]
+#![doc(html_root_url = "https://docs.rs/wherror/2.0.12")]
 #![allow(
     clippy::elidable_lifetime_names,
     clippy::module_name_repetitions,

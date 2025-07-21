@@ -9,7 +9,7 @@ Fork of [thiserror] `derive(Error)` with [`std::panic::Location`]
 support. This library provides a convenient derive macro for the standard library's
 [`std::error::Error`] trait.
 
-This fork was created because the location support feature ([thiserror#291]) has been 
+This fork was created because the location support feature ([thiserror#291]) has been
 waiting for over a year to be merged.
 
 [`std::error::Error`]: https://doc.rust-lang.org/std/error/trait.Error.html

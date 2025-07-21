@@ -116,7 +116,7 @@ fn compile_probe(rustc_bootstrap: bool) -> bool {
 
     cmd.stderr(Stdio::null())
         .arg("--edition=2018")
-        .arg("--crate-name=thiserror")
+        .arg("--crate-name=wherror")
         .arg("--crate-type=lib")
         .arg("--cap-lints=allow")
         .arg("--emit=dep-info,metadata")
