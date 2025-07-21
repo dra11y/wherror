@@ -1,6 +1,6 @@
 [package]
 name = "wherror"
-version = "2.0.12"
+version = "2.0.13"
 authors = ["Tom Grushka <tom@dra11y.com>", "David Tolnay <dtolnay@gmail.com>"]
 categories = ["rust-patterns"]
 description = "Fork of thiserror derive(Error) with std::panic::Location support"
