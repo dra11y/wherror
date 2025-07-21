@@ -28,7 +28,7 @@ default = ["std"]
 std = []
 
 [dependencies]
-wherror-impl = { version = "=2.0.12", path = "impl", package = "wherror-impl" }
+wherror-impl = { version = "=2.0.13", path = "impl", package = "wherror-impl" }
 
 [dev-dependencies]
 anyhow = "1.0.73"
