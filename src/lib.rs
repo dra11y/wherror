@@ -185,6 +185,52 @@
 //!   # }
 //!   ```
 //!
+//! - Use `#[error(debug)]` as a fallback to automatically generate Display
+//!   implementations using the Debug format. This is useful for rapid prototyping
+//!   or when you want to use the standard Debug representation.
+//!
+//!   For enums, you can apply `#[error(debug)]` at the type level to automatically
+//!   generate Display for all variants that don't have explicit `#[error("...")]`
+//!   messages:
+//!
+//!   ```rust
+//!   # use wherror::Error;
+//!   #
+//!   #[derive(Error, Debug)]
+//!   #[error(debug)]  // fallback for variants without explicit messages
+//!   pub enum MyError {
+//!       #[error("Custom message: {0}")]
+//!       WithMessage(String),
+//!       
+//!       // These will use Debug formatting:
+//!       Simple,
+//!       Complex { code: u32, message: String },
+//!       WithData(i32, String),
+//!   }
+//!   ```
+//!
+//!   You can also apply `#[error(debug)]` to individual variants or struct types:
+//!
+//!   ```rust
+//!   # use wherror::Error;
+//!   #
+//!   #[derive(Error, Debug)]
+//!   pub enum MyError {
+//!       #[error("IO error: {0}")]
+//!       Io(std::io::Error),
+//!       
+//!       #[error(debug)]  // This variant uses Debug formatting
+//!       Other { details: String, code: i32 },
+//!   }
+//!   
+//!   #[derive(Error, Debug)]
+//!   #[error(debug)]  // Entire struct uses Debug formatting
+//!   pub struct DebugError {
+//!       message: String,
+//!       code: u32,
+//!   }
+//!   ```
+//!
 //! - The Error trait's `source()` method is implemented to return whichever field
 //!   has a `#[source]` attribute or is named `source`, if any. This is for
 //!   identifying the underlying lower level error that caused your error.
@@ -385,7 +431,7 @@
 //! </sup>
 
 #![no_std]
-#![doc(html_root_url = "https://docs.rs/wherror/2.1.0")]
+#![doc(html_root_url = "https://docs.rs/wherror/2.2.0")]
 #![allow(
     clippy::elidable_lifetime_names,
     clippy::module_name_repetitions,

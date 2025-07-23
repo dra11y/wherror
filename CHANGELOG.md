@@ -5,6 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.2.0] - 2025-07-23
+
+### Added
+- **Debug fallback support**: New `#[error(debug)]` attribute for automatic Display generation using Debug formatting
+- Support for `#[error(debug)]` at enum type level to provide fallback for variants without explicit error messages
+- Support for `#[error(debug)]` on individual enum variants and struct types
+- Comprehensive validation to prevent conflicting attributes (`debug` with `display`, `fmt`, or `transparent`)
+- Enhanced enum Display generation with proper Debug formatting for unit, tuple, and struct variants
+- Added extensive test coverage for debug fallback functionality
+
+### Changed
+- Enhanced attribute parsing to recognize and validate `debug` attribute
+- Updated enum validation logic to allow variants without explicit display attributes when enum has `#[error(debug)]` fallback
+- Improved Display implementation generation for enums with mixed explicit and debug-fallback variants
+
 ## [2.1.0] - 2025-07-23
 
 ### Added

@@ -52,10 +52,11 @@ impl Enum<'_> {
         self.attrs.display.is_some()
             || self.attrs.transparent.is_some()
             || self.attrs.fmt.is_some()
+            || self.attrs.debug.is_some()
             || self
                 .variants
                 .iter()
-                .any(|variant| variant.attrs.display.is_some() || variant.attrs.fmt.is_some())
+                .any(|variant| variant.attrs.display.is_some() || variant.attrs.fmt.is_some() || variant.attrs.debug.is_some())
             || self
                 .variants
                 .iter()

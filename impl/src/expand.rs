@@ -139,6 +139,11 @@ fn impl_struct(input: Struct) -> TokenStream {
             let Self #pat = self;
             #display
         })
+    } else if let Some(debug_attr) = &input.attrs.debug {
+        // Fall back to Debug representation when #[error(debug)] is specified
+        Some(quote_spanned! {debug_attr.span=>
+            ::core::fmt::Debug::fmt(self, __formatter)
+        })
     } else {
         None
     };
@@ -463,13 +468,140 @@ fn impl_enum(input: Enum) -> TokenStream {
                     MemberUnraw::Unnamed(index) => format_ident!("_{}", index),
                 });
                 quote!(#fmt_path(#(#vars,)* __formatter))
-            } else {
+            } else if let Some(_transparent_attr) = &variant.attrs.transparent {
+                // Transparent: forward to the single field's Display implementation
                 let only_field = match &variant.fields[0].member {
                     MemberUnraw::Named(ident) => ident.to_local(),
                     MemberUnraw::Unnamed(index) => format_ident!("_{}", index),
                 };
                 display_implied_bounds.insert((0, Trait::Display));
                 quote!(::core::fmt::Display::fmt(#only_field, __formatter))
+            } else if let Some(debug_attr) = &variant.attrs.debug {
+                // Variant-level #[error(debug)]: debug the variant fields directly
+                let ident = &variant.ident;
+                let debug_span = debug_attr.span;
+                if variant.fields.is_empty() {
+                    // Unit variant: just display the variant name
+                    let variant_name = ident.to_string();
+                    quote_spanned! {debug_span=>
+                        ::core::write!(__formatter, "{}", #variant_name)
+                    }
+                } else if variant.fields.len() == 1 && matches!(variant.fields[0].member, MemberUnraw::Unnamed(_)) {
+                    // Tuple variant with single field: Format as Variant(field)
+                    let mut field_var = format_ident!("_0");
+                    field_var.set_span(debug_span);
+                    quote_spanned! {debug_span=>
+                        ::core::write!(__formatter, "{}({:?})", stringify!(#ident), #field_var)
+                    }
+                } else if variant.fields.iter().all(|f| matches!(f.member, MemberUnraw::Unnamed(_))) {
+                    // Tuple variant with multiple fields: Format as Variant(field1, field2, ...)
+                    let field_vars: Vec<_> = variant.fields.iter().enumerate().map(|(i, _)| {
+                        let var = format_ident!("_{}", i);
+                        quote_spanned! {debug_span=> #var}
+                    }).collect();
+                    quote_spanned! {debug_span=>
+                        ::core::write!(__formatter, "{}({:?})", stringify!(#ident), (#(#field_vars,)*))
+                    }
+                } else {
+                    // Struct variant: generate proper debug formatting showing all field values
+                    let field_writes: Vec<_> = variant.fields.iter().enumerate().map(|(i, field)| {
+                        let comma = if i < variant.fields.len() - 1 {
+                            quote_spanned! {debug_span=> ::core::write!(__formatter, ", ")?; }
+                        } else {
+                            quote_spanned! {debug_span=> }
+                        };
+                        match &field.member {
+                            MemberUnraw::Named(ident) => {
+                                let field_name = ident.to_string();
+                                let var = ident.to_local();
+                                quote_spanned! {debug_span=>
+                                    ::core::write!(__formatter, "{}: {:?}", #field_name, #var)?;
+                                    #comma
+                                }
+                            }
+                            MemberUnraw::Unnamed(index) => {
+                                let var = format_ident!("_{}", index);
+                                quote_spanned! {debug_span=>
+                                    ::core::write!(__formatter, "{:?}", #var)?;
+                                    #comma
+                                }
+                            }
+                        }
+                    }).collect();
+
+                    quote_spanned! {debug_span=>
+                        {
+                            ::core::write!(__formatter, "{} {{ ", stringify!(#ident))?;
+                            #(#field_writes)*
+                            ::core::write!(__formatter, " }}")
+                        }
+                    }
+                }
+            } else if let Some(debug_attr) = &input.attrs.debug {
+                // Top-level #[error(debug)]: fall back to Debug representation of the variant
+                // This implements the feature request from issue #172
+                let ident = &variant.ident;
+                if variant.fields.is_empty() {
+                    // Unit variant: just display the variant name
+                    let variant_name = ident.to_string();
+                    quote_spanned! {debug_attr.span=>
+                        ::core::write!(__formatter, "{}", #variant_name)
+                    }
+                } else if variant.fields.len() == 1 && matches!(variant.fields[0].member, MemberUnraw::Unnamed(_)) {
+                    // Tuple variant with single field: Format as Variant(field)
+                    let mut field_var = format_ident!("_0");
+                    field_var.set_span(debug_attr.span);
+                    quote_spanned! {debug_attr.span=>
+                        ::core::write!(__formatter, "{}({:?})", stringify!(#ident), #field_var)
+                    }
+                } else if variant.fields.iter().all(|f| matches!(f.member, MemberUnraw::Unnamed(_))) {
+                    // Tuple variant with multiple fields: Format as Variant(field1, field2, ...)
+                    let field_vars: Vec<_> = variant.fields.iter().enumerate().map(|(i, _)| {
+                        let mut var = format_ident!("_{}", i);
+                        var.set_span(debug_attr.span);
+                        var
+                    }).collect();
+                    quote_spanned! {debug_attr.span=>
+                        ::core::write!(__formatter, "{}({:?})", stringify!(#ident), (#(#field_vars,)*))
+                    }
+                } else {
+                    // Struct variant: generate proper debug formatting showing all field values
+                    let field_writes: Vec<_> = variant.fields.iter().enumerate().map(|(i, field)| {
+                        let comma = if i < variant.fields.len() - 1 {
+                            quote_spanned! {debug_attr.span=> ::core::write!(__formatter, ", ")?; }
+                        } else {
+                            quote_spanned! {debug_attr.span=> }
+                        };
+                        match &field.member {
+                            MemberUnraw::Named(ident) => {
+                                let field_name = ident.to_string();
+                                let var = ident.to_local();
+                                quote_spanned! {debug_attr.span=>
+                                    ::core::write!(__formatter, "{}: {:?}", #field_name, #var)?;
+                                    #comma
+                                }
+                            }
+                            MemberUnraw::Unnamed(index) => {
+                                let var = format_ident!("_{}", index);
+                                quote_spanned! {debug_attr.span=>
+                                    ::core::write!(__formatter, "{:?}", #var)?;
+                                    #comma
+                                }
+                            }
+                        }
+                    }).collect();
+
+                    quote_spanned! {debug_attr.span=>
+                        {
+                            ::core::write!(__formatter, "{} {{ ", stringify!(#ident))?;
+                            #(#field_writes)*
+                            ::core::write!(__formatter, " }}")
+                        }
+                    }
+                }
+            } else {
+                // This should be caught by validation - no display attribute and no fallback
+                quote!(unreachable!("missing display attribute should have been caught by validation"))
             };
             for (field, bound) in display_implied_bounds {
                 let field = &variant.fields[field];

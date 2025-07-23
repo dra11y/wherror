@@ -48,15 +48,21 @@ impl Enum<'_> {
         let has_display = self.has_display();
         for variant in &self.variants {
             variant.validate()?;
+            // Only require explicit display attributes if the enum has some display capability
+            // but this specific variant lacks any display mechanism
             if has_display
                 && variant.attrs.display.is_none()
                 && variant.attrs.transparent.is_none()
                 && variant.attrs.fmt.is_none()
+                && variant.attrs.debug.is_none()
             {
-                return Err(Error::new_spanned(
-                    variant.original,
-                    "missing #[error(\"...\")] display attribute",
-                ));
+                // Deny if the enum lacks #[error(debug)] fallback
+                if !self.attrs.debug.is_some() {
+                    return Err(Error::new_spanned(
+                        variant.original,
+                        "missing #[error(\"...\")] display attribute",
+                    ));
+                }
             }
         }
         Ok(())
@@ -94,6 +100,8 @@ impl Field<'_> {
             Some(display.original)
         } else if let Some(fmt) = &self.attrs.fmt {
             Some(fmt.original)
+        } else if let Some(debug) = &self.attrs.debug {
+            Some(debug.original)
         } else {
             None
         } {
@@ -138,10 +146,26 @@ fn check_non_field_attrs(attrs: &Attrs) -> Result<()> {
                 "cannot have both #[error(transparent)] and #[error(fmt = ...)]",
             ));
         }
+        if let Some(debug) = &attrs.debug {
+            return Err(Error::new_spanned(
+                debug.original,
+                "cannot have both #[error(transparent)] and #[error(debug)]",
+            ));
+        }
     } else if let (Some(display), Some(_)) = (&attrs.display, &attrs.fmt) {
         return Err(Error::new_spanned(
             display.original,
             "cannot have both #[error(fmt = ...)] and a format arguments attribute",
+        ));
+    } else if let (Some(display), Some(_)) = (&attrs.display, &attrs.debug) {
+        return Err(Error::new_spanned(
+            display.original,
+            "cannot have both #[error(debug)] and a display attribute",
+        ));
+    } else if let (Some(fmt), Some(_)) = (&attrs.fmt, &attrs.debug) {
+        return Err(Error::new_spanned(
+            fmt.original,
+            "cannot have both #[error(fmt = ...)] and #[error(debug)]",
         ));
     }
 
