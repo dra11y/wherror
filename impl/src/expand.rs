@@ -175,6 +175,41 @@ fn impl_struct(input: Struct) -> TokenStream {
             &source_var,
             input.location_field(),
         );
+
+        // Check if the field type (after unwrapping Option) is Box<T>
+        let field_type = type_parameter_of_option(from_field.ty).unwrap_or(from_field.ty);
+        let box_implementations = type_parameter_of_box(field_type).map(|inner_type| {
+            // Generate From<T> implementation that boxes the value
+            let inner_source_var = Ident::new("source", span);
+            let boxed_body = from_initializer_for_box(
+                from_field,
+                backtrace_field,
+                &inner_source_var,
+                input.location_field(),
+            );
+            let inner_from_function = quote! {
+                #track_caller
+                fn from(#inner_source_var: #inner_type) -> Self {
+                    #ty #boxed_body
+                }
+            };
+            let inner_from_impl = quote_spanned! {span=>
+                #[automatically_derived]
+                impl #impl_generics ::core::convert::From<#inner_type> for #ty #ty_generics #where_clause {
+                    #inner_from_function
+                }
+            };
+            quote! {
+                #[allow(
+                    deprecated,
+                    unused_qualifications,
+                    clippy::elidable_lifetime_names,
+                    clippy::needless_lifetimes,
+                )]
+                #inner_from_impl
+            }
+        });
+
         let from_function = quote! {
             #track_caller
             fn from(#source_var: #from) -> Self {
@@ -195,6 +230,7 @@ fn impl_struct(input: Struct) -> TokenStream {
                 clippy::needless_lifetimes,
             )]
             #from_impl
+            #box_implementations
         })
     });
 
@@ -466,20 +502,24 @@ fn impl_enum(input: Enum) -> TokenStream {
         None
     };
 
-    let from_impls = input.variants.iter().filter_map(|variant| {
+    let from_impls = input.variants.iter().flat_map(|variant| {
         let from_field = variant.from_field()?;
         let span = from_field.attrs.from.unwrap().span;
         let backtrace_field = variant.distinct_backtrace_field();
         let location_field = variant.location_field();
-        let variant = &variant.ident;
+        let variant_ident = &variant.ident;
         let from = unoptional_type(from_field.ty);
         let source_var = Ident::new("source", span);
         let body = from_initializer(from_field, backtrace_field, &source_var, location_field);
         let track_caller = location_field.map(|_| quote!(#[track_caller]));
+
+        let mut implementations = Vec::new();
+
+        // Main From implementation (always generated)
         let from_function = quote! {
             #track_caller
             fn from(#source_var: #from) -> Self {
-                #ty::#variant #body
+                #ty::#variant_ident #body
             }
         };
         let from_impl = quote_spanned! {span=>
@@ -488,7 +528,7 @@ fn impl_enum(input: Enum) -> TokenStream {
                 #from_function
             }
         };
-        Some(quote! {
+        implementations.push(quote! {
             #[allow(
                 deprecated,
                 unused_qualifications,
@@ -496,8 +536,44 @@ fn impl_enum(input: Enum) -> TokenStream {
                 clippy::needless_lifetimes,
             )]
             #from_impl
-        })
-    });
+        });
+
+        // Check if the field type (after unwrapping Option) is Box<T>
+        let field_type = type_parameter_of_option(from_field.ty).unwrap_or(from_field.ty);
+        if let Some(inner_type) = type_parameter_of_box(field_type) {
+            // Generate additional From<T> implementation that boxes the value
+            let inner_source_var = Ident::new("source", span);
+            let boxed_body = from_initializer_for_box(
+                from_field,
+                backtrace_field,
+                &inner_source_var,
+                location_field,
+            );
+            let inner_from_function = quote! {
+                #track_caller
+                fn from(#inner_source_var: #inner_type) -> Self {
+                    #ty::#variant_ident #boxed_body
+                }
+            };
+            let inner_from_impl = quote_spanned! {span=>
+                #[automatically_derived]
+                impl #impl_generics ::core::convert::From<#inner_type> for #ty #ty_generics #where_clause {
+                    #inner_from_function
+                }
+            };
+            implementations.push(quote! {
+                #[allow(
+                    deprecated,
+                    unused_qualifications,
+                    clippy::elidable_lifetime_names,
+                    clippy::needless_lifetimes,
+                )]
+                #inner_from_impl
+            });
+        }
+
+        Some(implementations)
+    }).flatten();
 
     let location_impl = if input.has_location() {
         let arms = input.variants.iter().map(|variant| {
@@ -636,6 +712,51 @@ fn from_initializer(
     })
 }
 
+fn from_initializer_for_box(
+    from_field: &Field,
+    backtrace_field: Option<&Field>,
+    source_var: &Ident,
+    location_field: Option<&Field>,
+) -> TokenStream {
+    let from_member = &from_field.member;
+    // For Box<T> fields, we need to Box::new the source when receiving T
+    let some_source = if type_is_option(from_field.ty) {
+        quote!(::core::option::Option::Some(::std::boxed::Box::new(#source_var)))
+    } else {
+        quote!(::std::boxed::Box::new(#source_var))
+    };
+    let backtrace = backtrace_field.map(|backtrace_field| {
+        let backtrace_member = &backtrace_field.member;
+        if type_is_option(backtrace_field.ty) {
+            quote! {
+                #backtrace_member: ::core::option::Option::Some(::wherror::__private::Backtrace::capture()),
+            }
+        } else {
+            quote! {
+                #backtrace_member: ::core::convert::From::from(::wherror::__private::Backtrace::capture()),
+            }
+        }
+    });
+    let location = location_field.map(|location_field| {
+        let location_member = &location_field.member;
+
+        if type_is_option(location_field.ty) {
+            quote! {
+                #location_member: ::core::option::Option::Some(::core::panic::Location::caller()),
+            }
+        } else {
+            quote! {
+                #location_member: ::core::convert::From::from(::core::panic::Location::caller()),
+            }
+        }
+    });
+    quote!({
+        #from_member: #some_source,
+        #backtrace
+        #location
+    })
+}
+
 fn type_is_option(ty: &Type) -> bool {
     type_parameter_of_option(ty).is_some()
 }
@@ -653,6 +774,32 @@ fn type_parameter_of_option(ty: &Type) -> Option<&Type> {
 
     let last = path.segments.last().unwrap();
     if last.ident != "Option" {
+        return None;
+    }
+
+    let bracketed = match &last.arguments {
+        PathArguments::AngleBracketed(bracketed) => bracketed,
+        _ => return None,
+    };
+
+    if bracketed.args.len() != 1 {
+        return None;
+    }
+
+    match &bracketed.args[0] {
+        GenericArgument::Type(arg) => Some(arg),
+        _ => None,
+    }
+}
+
+fn type_parameter_of_box(ty: &Type) -> Option<&Type> {
+    let path = match ty {
+        Type::Path(ty) => &ty.path,
+        _ => return None,
+    };
+
+    let last = path.segments.last().unwrap();
+    if last.ident != "Box" {
         return None;
     }
 
