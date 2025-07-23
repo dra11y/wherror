@@ -16,6 +16,7 @@ pub struct Attrs<'a> {
     pub from: Option<From<'a>>,
     pub transparent: Option<Transparent<'a>>,
     pub fmt: Option<Fmt<'a>>,
+    pub debug: Option<DebugFallback<'a>>,
 }
 
 #[derive(Clone)]
@@ -48,6 +49,12 @@ pub struct Transparent<'a> {
     pub span: Span,
 }
 
+#[derive(Copy, Clone)]
+pub struct DebugFallback<'a> {
+    pub original: &'a Attribute,
+    pub span: Span,
+}
+
 #[derive(Clone)]
 pub struct Fmt<'a> {
     pub original: &'a Attribute,
@@ -76,6 +83,7 @@ pub fn get(input: &[Attribute]) -> Result<Attrs> {
         from: None,
         transparent: None,
         fmt: None,
+        debug: None,
     };
 
     for attr in input {
@@ -133,6 +141,7 @@ fn parse_error_attribute<'a>(attrs: &mut Attrs<'a>, attr: &'a Attribute) -> Resu
     mod kw {
         syn::custom_keyword!(transparent);
         syn::custom_keyword!(fmt);
+        syn::custom_keyword!(debug);
     }
 
     attr.parse_args_with(|input: ParseStream| {
@@ -165,6 +174,19 @@ fn parse_error_attribute<'a>(attrs: &mut Attrs<'a>, attr: &'a Attribute) -> Resu
             attrs.fmt = Some(Fmt {
                 original: attr,
                 path,
+            });
+            return Ok(());
+        } else if lookahead.peek(kw::debug) {
+            let kw: kw::debug = input.parse()?;
+            if attrs.debug.is_some() {
+                return Err(Error::new_spanned(
+                    attr,
+                    "duplicate #[error(debug)] attribute",
+                ));
+            }
+            attrs.debug = Some(DebugFallback {
+                original: attr,
+                span: kw.span,
             });
             return Ok(());
         } else {
