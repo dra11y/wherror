@@ -139,9 +139,9 @@ fn impl_struct(input: Struct) -> TokenStream {
             let Self #pat = self;
             #display
         })
-    } else if input.attrs.debug.is_some() {
+    } else if let Some(debug_attr) = &input.attrs.debug {
         // Fall back to Debug representation when #[error(debug)] is specified
-        Some(quote! {
+        Some(quote_spanned! {debug_attr.span=>
             ::core::fmt::Debug::fmt(self, __formatter)
         })
     } else {
@@ -476,31 +476,73 @@ fn impl_enum(input: Enum) -> TokenStream {
                 };
                 display_implied_bounds.insert((0, Trait::Display));
                 quote!(::core::fmt::Display::fmt(#only_field, __formatter))
-            } else if let Some(_debug_attr) = &variant.attrs.debug {
-                // Variant-level #[error(debug)]: use Debug representation
-                quote!(::core::fmt::Debug::fmt(self, __formatter))
-            } else if input.attrs.debug.is_some() {
+            } else if let Some(debug_attr) = &variant.attrs.debug {
+                // Variant-level #[error(debug)]: debug the variant fields directly
+                let ident = &variant.ident;
+                let debug_span = debug_attr.span;
+                if variant.fields.is_empty() {
+                    // Unit variant: just display the variant name
+                    let variant_name = ident.to_string();
+                    quote_spanned! {debug_span=>
+                        ::core::write!(__formatter, "{}", #variant_name)
+                    }
+                } else if variant.fields.len() == 1 && matches!(variant.fields[0].member, MemberUnraw::Unnamed(_)) {
+                    // Tuple variant with single field: Format as Variant(field)
+                    let mut field_var = format_ident!("_0");
+                    field_var.set_span(debug_span);
+                    quote_spanned! {debug_span=>
+                        ::core::write!(__formatter, "{}({:?})", stringify!(#ident), #field_var)
+                    }
+                } else if variant.fields.iter().all(|f| matches!(f.member, MemberUnraw::Unnamed(_))) {
+                    // Tuple variant with multiple fields: Format as Variant(field1, field2, ...)
+                    let field_vars: Vec<_> = variant.fields.iter().enumerate().map(|(i, _)| {
+                        let var = format_ident!("_{}", i);
+                        quote_spanned! {debug_span=> #var}
+                    }).collect();
+                    quote_spanned! {debug_span=>
+                        ::core::write!(__formatter, "{}({:?})", stringify!(#ident), (#(#field_vars,)*))
+                    }
+                } else {
+                    // Struct variant: use a simple approach for now
+                    // This generates Debug-like output for struct variants
+                    quote_spanned! {debug_span=>
+                        {
+                            use ::core::fmt::Write;
+                            ::core::write!(__formatter, "{} {{ ... }}", stringify!(#ident))
+                        }
+                    }
+                }
+            } else if let Some(debug_attr) = &input.attrs.debug {
                 // Top-level #[error(debug)]: fall back to Debug representation of the variant
                 // This implements the feature request from issue #172
                 let ident = &variant.ident;
                 if variant.fields.is_empty() {
                     // Unit variant: just display the variant name
                     let variant_name = ident.to_string();
-                    quote!(::core::write!(__formatter, "{}", #variant_name))
+                    quote_spanned! {debug_attr.span=>
+                        ::core::write!(__formatter, "{}", #variant_name)
+                    }
                 } else if variant.fields.len() == 1 && matches!(variant.fields[0].member, MemberUnraw::Unnamed(_)) {
                     // Tuple variant with single field: Format as Variant(field)
-                    let field_var = format_ident!("_0");
-                    quote!(::core::write!(__formatter, "{}({:?})", stringify!(#ident), #field_var))
+                    let mut field_var = format_ident!("_0");
+                    field_var.set_span(debug_attr.span);
+                    quote_spanned! {debug_attr.span=>
+                        ::core::write!(__formatter, "{}({:?})", stringify!(#ident), #field_var)
+                    }
                 } else if variant.fields.iter().all(|f| matches!(f.member, MemberUnraw::Unnamed(_))) {
                     // Tuple variant with multiple fields: Format as Variant(field1, field2, ...)
                     let field_vars: Vec<_> = variant.fields.iter().enumerate().map(|(i, _)| {
-                        format_ident!("_{}", i)
+                        let mut var = format_ident!("_{}", i);
+                        var.set_span(debug_attr.span);
+                        var
                     }).collect();
-                    quote!(::core::write!(__formatter, "{}({:?})", stringify!(#ident), (#(#field_vars,)*)))
+                    quote_spanned! {debug_attr.span=>
+                        ::core::write!(__formatter, "{}({:?})", stringify!(#ident), (#(#field_vars,)*))
+                    }
                 } else {
                     // Struct variant: use a simple approach for now
                     // This generates Debug-like output for struct variants
-                    quote! {
+                    quote_spanned! {debug_attr.span=>
                         {
                             use ::core::fmt::Write;
                             ::core::write!(__formatter, "{} {{ ... }}", stringify!(#ident))

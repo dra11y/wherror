@@ -100,6 +100,8 @@ impl Field<'_> {
             Some(display.original)
         } else if let Some(fmt) = &self.attrs.fmt {
             Some(fmt.original)
+        } else if let Some(debug) = &self.attrs.debug {
+            Some(debug.original)
         } else {
             None
         } {

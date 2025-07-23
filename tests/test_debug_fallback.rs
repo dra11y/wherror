@@ -175,9 +175,9 @@ fn test_struct_with_error_debug() {
 fn test_struct_with_different_field_types() {
     #[derive(Error, Debug)]
     #[error(debug)]
+    #[allow(unused)]
     struct ComplexError {
         id: u64,
-        #[error(debug)]
         active: bool,
         reasons: Vec<String>,
     }
