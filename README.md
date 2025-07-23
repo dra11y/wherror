@@ -124,6 +124,21 @@ breaking change.
   }
   ```
 
+  For `Box<T>` fields with `#[from]`, both `From<Box<T>>` and `From<T>`
+  implementations are automatically generated for enhanced ergonomics:
+
+  ```rust
+  #[derive(Error, Debug)]
+  pub struct MyError {
+      #[from]
+      source: Box<io::Error>,
+  }
+
+  // Both work:
+  let err1: MyError = Box::new(io_error).into();
+  let err2: MyError = io_error.into();  // automatically boxed
+  ```
+
 - The Error trait's `source()` method is implemented to return whichever field
   has a `#[source]` attribute or is named `source`, if any. This is for
   identifying the underlying lower level error that caused your error.
