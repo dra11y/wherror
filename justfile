@@ -7,7 +7,7 @@ test:
 
 fix:
     cargo clippy --fix --allow-dirty --allow-staged -- -D warnings
-    cargo fmt --all -- --check
+    cargo fmt --all
 
 preflight:
     #!/usr/bin/env bash
