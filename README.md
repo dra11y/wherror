@@ -1,16 +1,18 @@
-wherror
-========
+# wherror
 
-[<img alt="github" src="https://img.shields.io/badge/github-dra11y/wherror-8da0cb?style=for-the-badge&labelColor=555555&logo=github" height="20">](https://github.com/dra11y/wherror)
-[<img alt="crates.io" src="https://img.shields.io/crates/v/wherror.svg?style=for-the-badge&color=fc8d62&logo=rust" height="20">](https://crates.io/crates/wherror)
-[<img alt="docs.rs" src="https://img.shields.io/badge/docs.rs-wherror-66c2a5?style=for-the-badge&labelColor=555555&logo=docs.rs" height="20">](https://docs.rs/wherror)
+[![github]](https://github.com/dra11y/wherror)&ensp;[![crates-io]](https://crates.io/crates/wherror)&ensp;[![docs-rs]](https://docs.rs/wherror)
+
+[github]: https://img.shields.io/badge/github-dra11y/wherror-8da0cb?style=for-the-badge&labelColor=555555&logo=github
+[crates-io]: https://img.shields.io/crates/v/wherror.svg?style=for-the-badge&color=fc8d62&logo=rust
+[docs-rs]: https://img.shields.io/badge/docs.rs-66c2a5?style=for-the-badge&labelColor=555555&logo=docs.rs
+
+<br>
 
 Fork of [thiserror] `derive(Error)` with [`std::panic::Location`]
 support. This library provides a convenient derive macro for the standard library's
 [`std::error::Error`] trait.
 
-This fork was created because the location support feature ([thiserror#291]) has been
-waiting for over a year to be merged.
+This fork was created to add location support ([thiserror#291]) and additional convenience features.
 
 [`std::error::Error`]: https://doc.rust-lang.org/std/error/trait.Error.html
 [`std::panic::Location`]: https://doc.rust-lang.org/std/panic/struct.Location.html
@@ -22,7 +24,7 @@ waiting for over a year to be merged.
 wherror = "2"
 ```
 
-## Location Support
+### Location Support
 
 Add a field of type `&'static std::panic::Location<'static>` to automatically capture where errors are created:
 
@@ -40,6 +42,8 @@ pub struct MyError {
 // Location automatically captured when using `?`
 std::fs::read_to_string("file.txt")?;
 ```
+
+<br>
 
 ## Example
 
@@ -89,6 +93,9 @@ breaking change.
   may be arbitrary expressions. For example:
 
   ```rust
+  # use core::i32;
+  # use wherror::Error;
+  #
   #[derive(Error, Debug)]
   pub enum Error {
       #[error("invalid rdo_lookahead_frames {0} (expected < {max})", max = i32::MAX)]
@@ -100,6 +107,18 @@ breaking change.
   struct or enum, then refer to named fields as `.var` and tuple fields as `.0`.
 
   ```rust
+  # use wherror::Error;
+  #
+  # fn first_char(s: &String) -> char {
+  #     s.chars().next().unwrap()
+  # }
+  #
+  # #[derive(Debug)]
+  # struct Limits {
+  #     lo: usize,
+  #     hi: usize,
+  # }
+  #
   #[derive(Error, Debug)]
   pub enum Error {
       #[error("first letter must be lowercase but was {:?}", first_char(.0))]
@@ -117,11 +136,27 @@ breaking change.
   fields are unnamed, but `#[from]` is allowed on a named field too.
 
   ```rust
+  # use core::fmt::{self, Display};
+  # use std::io;
+  # use wherror::Error;
+  #
+  # mod globset {
+  #     #[derive(wherror::Error, Debug)]
+  #     #[error("...")]
+  #     pub struct Error;
+  # }
+  #
   #[derive(Error, Debug)]
   pub enum MyError {
       Io(#[from] io::Error),
       Glob(#[from] globset::Error),
   }
+  #
+  # impl Display for MyError {
+  #     fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+  #         unimplemented!()
+  #     }
+  # }
   ```
 
   For `Box<T>` fields with `#[from]`, both `From<Box<T>>` and `From<T>`
@@ -150,12 +185,21 @@ breaking change.
   std::error::Error` will work as a source.
 
   ```rust
+  # use core::fmt::{self, Display};
+  # use wherror::Error;
+  #
   #[derive(Error, Debug)]
   pub struct MyError {
       msg: String,
       #[source]  // optional if field name is `source`
       source: anyhow::Error,
   }
+  #
+  # impl Display for MyError {
+  #     fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+  #         unimplemented!()
+  #     }
+  # }
   ```
 
 - Fields of type `&'static std::panic::Location<'static>` are automatically
@@ -184,7 +228,7 @@ breaking change.
   `Backtrace` in errors requires a nightly compiler with Rust version 1.73 or
   newer.
 
-  ```rust
+  ```rust,ignore
   use std::backtrace::Backtrace;
 
   #[derive(Error, Debug)]
@@ -200,8 +244,7 @@ breaking change.
   share the same backtrace. The `#[backtrace]` attribute requires a nightly
   compiler with Rust version 1.73 or newer.
 
-
-  ```rust
+  ```rust,ignore
   #[derive(Error, Debug)]
   pub enum MyError {
       Io {
@@ -214,7 +257,7 @@ breaking change.
 - For variants that use `#[from]` and also contain a `Backtrace` field, a
   backtrace is captured from within the `From` impl.
 
-  ```rust
+  ```rust,ignore
   #[derive(Error, Debug)]
   pub enum MyError {
       Io {
@@ -229,10 +272,14 @@ breaking change.
   straight through to an underlying error without adding an additional message.
   This would be appropriate for enums that need an "anything else" variant.
 
-  ```rust
+  ```
+  # use wherror::Error;
+  #
   #[derive(Error, Debug)]
   pub enum MyError {
+      # /*
       ...
+      # */
 
       #[error(transparent)]
       Other(#[from] anyhow::Error),  // source and Display delegate to anyhow::Error
@@ -243,7 +290,9 @@ breaking change.
   behind an opaque error type, so that the representation is able to evolve
   without breaking the crate's public API.
 
-  ```rust
+  ```
+  # use wherror::Error;
+  #
   // PublicError is public, but opaque and easy to keep compatible.
   #[derive(Error, Debug)]
   #[error(transparent)]
@@ -256,7 +305,9 @@ breaking change.
   // Private and free to change across minor version of the crate.
   #[derive(Error, Debug)]
   enum ErrorRepr {
+      # /*
       ...
+      # */
   }
   ```
 
@@ -267,7 +318,7 @@ breaking change.
 
 <br>
 
-## Comparison to anyhow
+### Comparison to anyhow
 
 Use wherror if you care about designing your own dedicated error type(s) so
 that the caller receives exactly the information that you choose in the event of
@@ -303,3 +354,5 @@ Fork of <a href="https://github.com/dtolnay/thiserror">thiserror</a> by David To
 with location support by <a href="https://github.com/onlycs">Angad Tendulkar</a>
 from <a href="https://github.com/dtolnay/thiserror/pull/291">thiserror#291</a>.
 </sup>
+
+License: MIT OR Apache-2.0
