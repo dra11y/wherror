@@ -8,9 +8,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [2.1.0] - 2025-07-23
 
 ### Added
-- CHANGELOG + semantic versioning
 - Auto-generate `From<T>` implementations for `Box<T>` fields with `#[from]` attribute
 - Support for `Option<Box<T>>` fields with automatic boxing in `From<T>` implementations
+- Added CHANGELOG + semantic versioning
+- Got most lib docs to compile and synced with README using `cargo-readme`
+- Added justfile with `preflight` version check before `publish`
 
 ### Changed
 - Enhanced `from_impl` generation to detect `Box<T>` types and generate additional `From<T>` implementations

@@ -17,13 +17,13 @@ mod tests {
         let io_error = io::Error::new(io::ErrorKind::Other, "test error");
         let boxed_error = Box::new(io_error);
         let error = OptionalBoxError::from(boxed_error);
-        println!("Created error from Box<...>: {:?}", error);
+        println!("Created error from Box<...>: {error:?}");
     }
 
     #[test]
     fn test_optional_unboxed_from() {
         let io_error = io::Error::new(io::ErrorKind::Other, "test error");
         let error = OptionalBoxError::from(io_error);
-        println!("Created error from unboxed (optional): {:?}", error);
+        println!("Created error from unboxed (optional): {error:?}");
     }
 }

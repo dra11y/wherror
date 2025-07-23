@@ -38,7 +38,10 @@
 //! }
 //!
 //! // Location automatically captured when using `?`
-//! std::fs::read_to_string("file.txt")?;
+//! fn read_file() -> Result<String, MyError> {
+//!     let content = std::fs::read_to_string("file.txt")?;
+//!     Ok(content)
+//! }
 //! ```
 //!
 //! <br>
@@ -162,15 +165,24 @@
 //!   implementations are automatically generated for enhanced ergonomics:
 //!
 //!   ```rust
+//!   # use std::io;
+//!   # use wherror::Error;
+//!   #
 //!   #[derive(Error, Debug)]
+//!   #[error("Error occurred")]
 //!   pub struct MyError {
 //!       #[from]
 //!       source: Box<io::Error>,
 //!   }
-//!
-//!   // Both work:
-//!   let err1: MyError = Box::new(io_error).into();
-//!   let err2: MyError = io_error.into();  // automatically boxed
+//!   #
+//!   # fn example() -> Result<(), Box<dyn std::error::Error>> {
+//!   #     let io_error = io::Error::new(io::ErrorKind::Other, "test");
+//!   #
+//!   #     // Both work:
+//!   #     let err1: MyError = Box::new(io_error).into();
+//!   #     let err2: MyError = io::Error::new(io::ErrorKind::Other, "test").into();  // automatically boxed
+//!   #     Ok(())
+//!   # }
 //!   ```
 //!
 //! - The Error trait's `source()` method is implemented to return whichever field
@@ -209,6 +221,8 @@
 //!   `Option<&'static std::panic::Location<'static>>`.
 //!
 //!   ```rust
+//!   # use wherror::Error;
+//!   #
 //!   #[derive(Error, Debug)]
 //!   #[error("Parse error at {location}: {source}")]
 //!   pub struct ParseError {
@@ -216,10 +230,15 @@
 //!       source: std::num::ParseIntError,
 //!       location: &'static std::panic::Location<'static>,  // automatically detected
 //!   }
-//!
-//!   if let Some(location) = error.location() {
-//!       eprintln!("Error at {}:{}", location.file(), location.line());
-//!   }
+//!   #
+//!   # fn example() -> Result<(), ParseError> {
+//!   #     let result: Result<i32, _> = "not_a_number".parse();
+//!   #     let error: ParseError = result.unwrap_err().into();
+//!   #     if let Some(location) = error.location() {
+//!   #         eprintln!("Error at {}:{}", location.file(), location.line());
+//!   #     }
+//!   #     Ok(())
+//!   # }
 //!   ```
 //!
 //! - The Error trait's `provide()` method is implemented to provide whichever field
@@ -228,9 +247,11 @@
 //!   newer.
 //!
 //!   ```rust,ignore
-//!   use std::backtrace::Backtrace;
-//!
+//!   # use std::backtrace::Backtrace;
+//!   # use wherror::Error;
+//!   #
 //!   #[derive(Error, Debug)]
+//!   #[error("Something went wrong: {msg}")]
 //!   pub struct MyError {
 //!       msg: String,
 //!       backtrace: Backtrace,  // automatically detected
@@ -244,7 +265,11 @@
 //!   compiler with Rust version 1.73 or newer.
 //!
 //!   ```rust,ignore
+//!   # use std::io;
+//!   # use wherror::Error;
+//!   #
 //!   #[derive(Error, Debug)]
+//!   #[error("IO error occurred")]
 //!   pub enum MyError {
 //!       Io {
 //!           #[backtrace]
@@ -257,7 +282,12 @@
 //!   backtrace is captured from within the `From` impl.
 //!
 //!   ```rust,ignore
+//!   # use std::backtrace::Backtrace;
+//!   # use std::io;
+//!   # use wherror::Error;
+//!   #
 //!   #[derive(Error, Debug)]
+//!   #[error("IO error occurred")]
 //!   pub enum MyError {
 //!       Io {
 //!           #[from]
