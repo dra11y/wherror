@@ -75,4 +75,4 @@ preflight:
     echo "✅ All preflight checks passed! Ready to publish version $CURRENT_VERSION"
 
 publish *args: test fix readme preflight
-    cargo +nightly publish -Z package-workspace --package wherror-impl --package wherror "{{args}}"
+    cargo +nightly publish -Z package-workspace --package wherror-impl --package wherror {{args}}
