@@ -57,8 +57,9 @@ preflight:
 
     # Check git status - ensure all changes are committed
     echo "📋 Checking git status..."
-    if ! git diff-index --quiet HEAD --; then
+    if [ -n "$(git status --porcelain)" ]; then
         echo "❌ Uncommitted changes found. Please commit all changes before release."
+        git status
         exit 1
     fi
 
