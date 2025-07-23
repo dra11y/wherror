@@ -31,7 +31,7 @@ fn test_debug_fallback() {
 
     // Test struct variant
     assert(
-        "ComplexVariant { ... }",
+        "ComplexVariant { expected: \"foo\", found: \"bar\" }",
         MyError::ComplexVariant {
             expected: "foo".to_string(),
             found: "bar".to_string(),
@@ -58,7 +58,7 @@ fn test_no_error_annotations() {
     assert("Simple", PureDebugError::Simple);
     assert("WithData(123)", PureDebugError::WithData(123));
     assert(
-        "Complex { ... }",
+        "Complex { code: 404, message: \"Not found\" }",
         PureDebugError::Complex {
             code: 404,
             message: "Not found".to_string(),

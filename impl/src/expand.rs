@@ -503,12 +503,37 @@ fn impl_enum(input: Enum) -> TokenStream {
                         ::core::write!(__formatter, "{}({:?})", stringify!(#ident), (#(#field_vars,)*))
                     }
                 } else {
-                    // Struct variant: use a simple approach for now
-                    // This generates Debug-like output for struct variants
+                    // Struct variant: generate proper debug formatting showing all field values
+                    let field_writes: Vec<_> = variant.fields.iter().enumerate().map(|(i, field)| {
+                        let comma = if i < variant.fields.len() - 1 {
+                            quote_spanned! {debug_span=> ::core::write!(__formatter, ", ")?; }
+                        } else {
+                            quote_spanned! {debug_span=> }
+                        };
+                        match &field.member {
+                            MemberUnraw::Named(ident) => {
+                                let field_name = ident.to_string();
+                                let var = ident.to_local();
+                                quote_spanned! {debug_span=>
+                                    ::core::write!(__formatter, "{}: {:?}", #field_name, #var)?;
+                                    #comma
+                                }
+                            }
+                            MemberUnraw::Unnamed(index) => {
+                                let var = format_ident!("_{}", index);
+                                quote_spanned! {debug_span=>
+                                    ::core::write!(__formatter, "{:?}", #var)?;
+                                    #comma
+                                }
+                            }
+                        }
+                    }).collect();
+
                     quote_spanned! {debug_span=>
                         {
-                            use ::core::fmt::Write;
-                            ::core::write!(__formatter, "{} {{ ... }}", stringify!(#ident))
+                            ::core::write!(__formatter, "{} {{ ", stringify!(#ident))?;
+                            #(#field_writes)*
+                            ::core::write!(__formatter, " }}")
                         }
                     }
                 }
@@ -540,12 +565,37 @@ fn impl_enum(input: Enum) -> TokenStream {
                         ::core::write!(__formatter, "{}({:?})", stringify!(#ident), (#(#field_vars,)*))
                     }
                 } else {
-                    // Struct variant: use a simple approach for now
-                    // This generates Debug-like output for struct variants
+                    // Struct variant: generate proper debug formatting showing all field values
+                    let field_writes: Vec<_> = variant.fields.iter().enumerate().map(|(i, field)| {
+                        let comma = if i < variant.fields.len() - 1 {
+                            quote_spanned! {debug_attr.span=> ::core::write!(__formatter, ", ")?; }
+                        } else {
+                            quote_spanned! {debug_attr.span=> }
+                        };
+                        match &field.member {
+                            MemberUnraw::Named(ident) => {
+                                let field_name = ident.to_string();
+                                let var = ident.to_local();
+                                quote_spanned! {debug_attr.span=>
+                                    ::core::write!(__formatter, "{}: {:?}", #field_name, #var)?;
+                                    #comma
+                                }
+                            }
+                            MemberUnraw::Unnamed(index) => {
+                                let var = format_ident!("_{}", index);
+                                quote_spanned! {debug_attr.span=>
+                                    ::core::write!(__formatter, "{:?}", #var)?;
+                                    #comma
+                                }
+                            }
+                        }
+                    }).collect();
+
                     quote_spanned! {debug_attr.span=>
                         {
-                            use ::core::fmt::Write;
-                            ::core::write!(__formatter, "{} {{ ... }}", stringify!(#ident))
+                            ::core::write!(__formatter, "{} {{ ", stringify!(#ident))?;
+                            #(#field_writes)*
+                            ::core::write!(__formatter, " }}")
                         }
                     }
                 }
