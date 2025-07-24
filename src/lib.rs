@@ -131,7 +131,7 @@
 //! # Detailed Features
 //!
 //! wherror extends thiserror with community-requested features while maintaining
-//! 100% API compatibility. All existing thiserror code works unchanged.
+//! thiserror API compatibility. All existing thiserror code works unchanged.
 //!
 //! - Errors may be enums, structs with named fields, tuple structs, or unit
 //!   structs.
