@@ -1,7 +1,7 @@
 [package]
 name = "wherror_no_std_test"
 version = "0.0.0"
-authors = ["David Tolnay <dtolnay@gmail.com>"]
+authors = ["Tom Grushka <tom@dra11y.com>", "David Tolnay <dtolnay@gmail.com>"]
 edition = "2021"
 publish = false
 

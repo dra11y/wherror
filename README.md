@@ -8,15 +8,28 @@
 
 <br>
 
-Fork of [thiserror] `derive(Error)` with [`std::panic::Location`]
-support. This library provides a convenient derive macro for the standard library's
-[`std::error::Error`] trait.
+The same `derive(Error)` macro `thiserror` provides + **the features you want!**
 
-This fork was created to add location support ([thiserror#291]) and additional convenience features.
+**wherror** = **thiserror** + **WHERE** your errors occurred 🎯
+
+### Why Choose wherror Over thiserror?
+
+wherror implements **the most requested community features**:
+
+| Feature | wherror | thiserror | Community Interest |
+|---------|---------|-----------|-------------------|
+| **Drop-in replacement** for existing code | ✅ | ✅ | Zero migration effort |
+| **Call-site location tracking** | ✅ | ❌ | [17👍 since 2021][thiserror#142] |
+| **Automatically use `Debug` as `Display`** with `#[error(debug)]` | ✅ | ❌ | [Requested feature][thiserror#172] |
+| **Enhanced ergonomics** (`Box<T>` unwrapping, `.location()` method) | ✅ | ❌ | wherror enhancements |
+
+Use wherror when you need these features today, with the same reliable API you know and love.
 
 [`std::error::Error`]: https://doc.rust-lang.org/std/error/trait.Error.html
 [`std::panic::Location`]: https://doc.rust-lang.org/std/panic/struct.Location.html
 [thiserror]: https://github.com/dtolnay/thiserror
+[thiserror#142]: https://github.com/dtolnay/thiserror/issues/142
+[thiserror#172]: https://github.com/dtolnay/thiserror/issues/172
 [thiserror#291]: https://github.com/dtolnay/thiserror/pull/291
 
 ```toml
@@ -24,9 +37,9 @@ This fork was created to add location support ([thiserror#291]) and additional c
 wherror = "2"
 ```
 
-### Location Support
+### 🎯 Instant Error Location Tracking
 
-Add a field of type `&'static std::panic::Location<'static>` to automatically capture where errors are created:
+Know **exactly where** your errors originated with zero boilerplate:
 
 ```rust
 use wherror::Error;
@@ -36,47 +49,90 @@ use wherror::Error;
 pub struct MyError {
     #[from]
     source: std::io::Error,
-    location: &'static std::panic::Location<'static>,  // Auto-populated
+    location: &'static std::panic::Location<'static>,  // ✨ Auto-populated
 }
 
-// Location automatically captured when using `?`
+// Location automatically captured when using `?` - no manual work required!
 fn read_file() -> Result<String, MyError> {
-    let content = std::fs::read_to_string("file.txt")?;
+    let content = std::fs::read_to_string("file.txt")?;  // 📍 Location captured here
     Ok(content)
 }
 ```
 
-<br>
+### 🚀 Debug Fallback - No More Boilerplate Messages
 
-## Example
+Sometimes your enum variant names *are* the error message. wherror lets you skip
+the redundant `#[error("...")]` attributes that thiserror forces you to write:
 
 ```rust
 use wherror::Error;
 
 #[derive(Error, Debug)]
-pub enum DataStoreError {
-    #[error("data store disconnected")]
-    Disconnect(#[from] io::Error),
-    #[error("the data for key `{0}` is not available")]
-    Redaction(String),
-    #[error("invalid header (expected {expected:?}, found {found:?})")]
-    InvalidHeader {
-        expected: String,
-        found: String,
-    },
-    #[error("unknown data store error")]
-    Unknown,
+#[error(debug)]  // 🎉 Fallback for variants without explicit messages
+pub enum ValidationError {
+    #[error("Email must contain @ symbol")]  // Custom message when needed
+    InvalidEmail,
+
+    // These use Debug formatting automatically - no boilerplate! ✨
+    TooShort,
+    TooLong,
+    EmptyInput,
+    InvalidCharacters { found: char, position: usize },
 }
 ```
 
 <br>
 
-## Details
+## Example: All Features in Action
 
-Wherror deliberately does not appear in your public API. You get the same
-thing as if you had written an implementation of `std::error::Error` by hand,
-and switching from handwritten impls to thiserror or vice versa is not a
-breaking change.
+```rust
+use wherror::Error;
+
+#[derive(Error, Debug)]
+#[error(debug)]  // ✨ Fallback for variants without explicit messages
+pub enum DataStoreError {
+    #[error("data store disconnected at {location}")]  // 🎯 Location tracking
+    Disconnect {
+        #[from]
+        source: io::Error,
+        location: &'static std::panic::Location<'static>,  // Auto-captured
+    },
+    #[error("the data for key `{0}` is not available")]
+    Redaction(String),
+    #[error("invalid header (expected {expected:?}, found {found:?})")]
+    InvalidHeader { expected: String, found: String },
+    // ✨ These use Debug formatting automatically - no #[error("...")] needed!
+    Unknown,
+    ConfigurationMissing,
+    PermissionDenied { user_id: u64 },
+}
+```
+
+<br>
+
+## Quick Migration from thiserror
+
+**Step 1:** Update your `Cargo.toml`:
+```toml
+[dependencies]
+# thiserror = "2.0"  # Replace this
+wherror = "2.2"       # With this
+```
+
+**Step 2:** Update imports:
+```rust
+// use thiserror::Error;  // Replace this
+use wherror::Error;      // With this
+```
+
+**Step 3:** Your existing code works unchanged! Optionally add new features like location tracking.
+
+<br>
+
+## Detailed Features
+
+wherror extends thiserror with community-requested features while maintaining
+100% API compatibility. All existing thiserror code works unchanged.
 
 - Errors may be enums, structs with named fields, tuple structs, or unit
   structs.
@@ -187,8 +243,12 @@ breaking change.
   ```
 
 - Use `#[error(debug)]` as a fallback to automatically generate Display
-  implementations using the Debug format. This is useful for rapid prototyping
-  or when you want to use the standard Debug representation.
+  implementations using the Debug format. This eliminates boilerplate when your
+  enum variant names are already descriptive error messages.
+
+  This addresses the request in [thiserror#172] for optional error messages,
+  allowing you to skip redundant `#[error("TooSmall")]` when `TooSmall` is
+  already a clear error name.
 
   For enums, you can apply `#[error(debug)]` at the type level to automatically
   generate Display for all variants that don't have explicit `#[error("...")]`
@@ -264,8 +324,8 @@ breaking change.
   populated with the call site location when errors are created via `From` trait
   conversion. This works seamlessly with the `?` operator for precise error tracking.
 
-  For errors with location fields, a `location()` method is generated that returns
-  `Option<&'static std::panic::Location<'static>>`.
+  wherror automatically generates a `.location()` method that returns
+  `Option<&'static std::panic::Location<'static>>` for easy access to error origins.
 
   ```rust
   # use wherror::Error;
@@ -277,16 +337,25 @@ breaking change.
       source: std::num::ParseIntError,
       location: &'static std::panic::Location<'static>,  // automatically detected
   }
-  #
-  # fn example() -> Result<(), ParseError> {
-  #     let result: Result<i32, _> = "not_a_number".parse();
-  #     let error: ParseError = result.unwrap_err().into();
-  #     if let Some(location) = error.location() {
-  #         eprintln!("Error at {}:{}", location.file(), location.line());
+
+  fn example() -> Result<(), ParseError> {
+      let _number: i32 = "not_a_number".parse()?;  // Location captured here automatically
+      Ok(())
+  }
+
+  # fn demonstrate_usage() {
+  #     if let Err(error) = example() {
+  #         // Access the location where the error occurred
+  #         if let Some(location) = error.location() {
+  #             eprintln!("Error occurred at {}:{}", location.file(), location.line());
+  #         }
   #     }
-  #     Ok(())
   # }
   ```
+
+  This implements the feature requested in [thiserror#142] (17👍), providing
+  automatic call-site location tracking with zero boilerplate - a valuable
+  debugging tool for production applications.
 
 - The Error trait's `provide()` method is implemented to provide whichever field
   has a type named `Backtrace`, if any, as a `std::backtrace::Backtrace`. Using

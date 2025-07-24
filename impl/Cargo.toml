@@ -1,7 +1,7 @@
 [package]
 name = "wherror-impl"
-version = "2.2.0"
-authors = ["Tom <tom@dra11y.com>", "David Tolnay <dtolnay@gmail.com>"]
+version = "2.2.1"
+authors = ["Tom Grushka <tom@dra11y.com>", "David Tolnay <dtolnay@gmail.com>"]
 description = "Implementation detail of the `wherror` crate (fork of thiserror with Location support)"
 edition = "2021"
 license = "MIT OR Apache-2.0"

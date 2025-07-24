@@ -2,6 +2,10 @@ readme:
     @which cargo-readme || cargo binstall cargo-readme
     cargo readme --output README.md
 
+docs:
+    cargo doc --open
+    watchexec --exts rs -- cargo doc
+
 test:
     cargo test
 

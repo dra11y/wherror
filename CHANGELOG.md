@@ -5,6 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.2.1] - 2025-07-23
+
+### Changed
+- **Improved documentation and branding**: Enhanced crate description and marketing materials
+- Updated feature comparison table with more accurate "drop-in replacement" messaging
+- Clarified wherror's positioning as extending thiserror with community-requested features
+- Improved Cargo.toml keywords for better discoverability (`thiserror`, `macro` added; overly specific keywords removed)
+- Enhanced README generation from lib.rs documentation with better examples and clearer value proposition
+
 ## [2.2.0] - 2025-07-23
 
 ### Added

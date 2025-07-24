@@ -1,12 +1,12 @@
 [package]
 name = "wherror"
-version = "2.2.0"
+version = "2.2.1"
 authors = ["Tom Grushka <tom@dra11y.com>", "David Tolnay <dtolnay@gmail.com>"]
 categories = ["rust-patterns"]
-description = "Fork of thiserror derive(Error) with std::panic::Location support"
+description = "The same derive(Error) macro thiserror provides + the features you want!"
 documentation = "https://docs.rs/wherror"
 edition = "2021"
-keywords = ["error", "error-handling", "derive", "location", "panic"]
+keywords = ["thiserror", "error", "error-handling", "derive", "macro"]
 license = "MIT OR Apache-2.0"
 repository = "https://github.com/dra11y/wherror"
 rust-version = "1.61"
@@ -28,7 +28,7 @@ default = ["std"]
 std = []
 
 [dependencies]
-wherror-impl = { version = "=2.2.0", path = "impl", package = "wherror-impl" }
+wherror-impl = { version = "=2.2.1", path = "impl", package = "wherror-impl" }
 
 [dev-dependencies]
 anyhow = "1.0.73"
