@@ -501,7 +501,7 @@
 //! </sup>
 
 #![no_std]
-#![doc(html_root_url = "https://docs.rs/wherror/2.2.1")]
+#![doc(html_root_url = "https://docs.rs/wherror/2.2.2")]
 #![allow(
     clippy::elidable_lifetime_names,
     clippy::module_name_repetitions,

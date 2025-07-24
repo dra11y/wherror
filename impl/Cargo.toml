@@ -1,6 +1,6 @@
 [package]
 name = "wherror-impl"
-version = "2.2.1"
+version = "2.2.2"
 authors = ["Tom Grushka <tom@dra11y.com>", "David Tolnay <dtolnay@gmail.com>"]
 description = "Implementation detail of the `wherror` crate (fork of thiserror with Location support)"
 edition = "2021"

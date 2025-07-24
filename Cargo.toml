@@ -1,6 +1,6 @@
 [package]
 name = "wherror"
-version = "2.2.1"
+version = "2.2.2"
 authors = ["Tom Grushka <tom@dra11y.com>", "David Tolnay <dtolnay@gmail.com>"]
 categories = ["rust-patterns"]
 description = "The same derive(Error) macro thiserror provides + the features you want!"
@@ -28,7 +28,7 @@ default = ["std"]
 std = []
 
 [dependencies]
-wherror-impl = { version = "=2.2.1", path = "impl", package = "wherror-impl" }
+wherror-impl = { version = "=2.2.2", path = "impl", package = "wherror-impl" }
 
 [dev-dependencies]
 anyhow = "1.0.73"
