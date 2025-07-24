@@ -1,10 +1,11 @@
 # wherror
 
-[![github]](https://github.com/dra11y/wherror)&ensp;[![crates-io]](https://crates.io/crates/wherror)&ensp;[![docs-rs]](https://docs.rs/wherror)
+[![github]](https://github.com/dra11y/wherror)&ensp;[![crates-io]](https://crates.io/crates/wherror)&ensp;[![docs-rs]](https://docs.rs/wherror)&ensp;[![changelog]](https://github.com/dra11y/wherror/blob/main/CHANGELOG.md)
 
 [github]: https://img.shields.io/badge/github-dra11y/wherror-8da0cb?style=for-the-badge&labelColor=555555&logo=github
 [crates-io]: https://img.shields.io/crates/v/wherror.svg?style=for-the-badge&color=fc8d62&logo=rust
 [docs-rs]: https://img.shields.io/badge/docs.rs-66c2a5?style=for-the-badge&labelColor=555555&logo=docs.rs
+[changelog]: https://img.shields.io/badge/changelog-Keep%20a%20Changelog-E05735?style=for-the-badge&labelColor=555555&logo=keepachangelog
 
 <br>
 
@@ -24,6 +25,8 @@ wherror implements **the most requested community features**:
 | **Enhanced ergonomics** (`Box<T>` unwrapping, `.location()` method) | ✅ | ❌ | wherror enhancements |
 
 Use wherror when you need these features today, with the same reliable API you know and love.
+
+See the [CHANGELOG](https://github.com/dra11y/wherror/blob/main/CHANGELOG.md)
 
 [`std::error::Error`]: https://doc.rust-lang.org/std/error/trait.Error.html
 [`std::panic::Location`]: https://doc.rust-lang.org/std/panic/struct.Location.html
