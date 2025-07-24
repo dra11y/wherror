@@ -19,8 +19,8 @@ wherror implements **the most requested community features**:
 | Feature | wherror | thiserror | Community Interest |
 |---------|---------|-----------|-------------------|
 | **Drop-in replacement** for existing code | ✅ | ✅ | Zero migration effort |
-| **Call-site location tracking** | ✅ | ❌ | [17👍 since 2021][thiserror#142] |
-| **Automatically use `Debug` as `Display`** with `#[error(debug)]` | ✅ | ❌ | [Requested feature][thiserror#172] |
+| **Automatically use `Debug` as `Display`** with `#[error(debug)]` | ✅ | ❌ | [#172 - not planned!][thiserror#172] |
+| **Call-site location tracking** | ✅ | ❌ | [#142 - 17👍 since 2021][thiserror#142] |
 | **Enhanced ergonomics** (`Box<T>` unwrapping, `.location()` method) | ✅ | ❌ | wherror enhancements |
 
 Use wherror when you need these features today, with the same reliable API you know and love.
@@ -115,8 +115,8 @@ pub enum DataStoreError {
 **Step 1:** Update your `Cargo.toml`:
 ```toml
 [dependencies]
-# thiserror = "2.0"  # Replace this
-wherror = "2.2"       # With this
+# thiserror = "2"  # Replace this
+wherror = "2"       # With this
 ```
 
 **Step 2:** Update imports:
@@ -327,6 +327,8 @@ wherror extends thiserror with community-requested features while maintaining
   wherror automatically generates a `.location()` method that returns
   `Option<&'static std::panic::Location<'static>>` for easy access to error origins.
 
+  This implements the feature requested in [thiserror#142] (17👍).
+
   ```rust
   # use wherror::Error;
   #
@@ -352,10 +354,6 @@ wherror extends thiserror with community-requested features while maintaining
   #     }
   # }
   ```
-
-  This implements the feature requested in [thiserror#142] (17👍), providing
-  automatic call-site location tracking with zero boilerplate - a valuable
-  debugging tool for production applications.
 
 - The Error trait's `provide()` method is implemented to provide whichever field
   has a type named `Backtrace`, if any, as a `std::backtrace::Backtrace`. Using
