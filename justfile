@@ -13,7 +13,7 @@ fix:
     cargo clippy --fix --allow-dirty --allow-staged -- -D warnings
     cargo fmt --all
 
-preflight:
+preflight: test fix readme
     #!/usr/bin/env bash
     set -euo pipefail
 
@@ -78,5 +78,5 @@ preflight:
 
     echo "✅ All preflight checks passed! Ready to publish version $CURRENT_VERSION"
 
-publish *args: test fix readme preflight
+publish *args: preflight
     cargo +nightly publish -Z package-workspace --package wherror-impl --package wherror {{args}}
