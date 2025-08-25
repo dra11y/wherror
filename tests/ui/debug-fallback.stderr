@@ -1,0 +1,5 @@
+error: expected one of: string literal, `transparent`, `fmt`, `debug`
+ --> tests/ui/debug-fallback.rs:4:9
+  |
+4 | #[error(auto)]
+  |         ^^^^

@@ -1,5 +1,8 @@
-use core::fmt::{Debug, Display};
-use core::panic::UnwindSafe;
+use core::{
+    error::Error,
+    fmt::{Debug, Display},
+    panic::UnwindSafe,
+};
 
 #[doc(hidden)]
 pub trait AsDynError<'a>: Sealed {
