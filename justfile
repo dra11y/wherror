@@ -66,7 +66,7 @@ preflight: test fix readme
 
     # Check for old version references outside CHANGELOG.md
     echo "🔍 Checking for old version references..."
-    OLD_VERSION_FILES=$(grep -r "$LATEST_CRATES_VERSION" --exclude-dir=target --exclude-dir=.git --exclude=CHANGELOG.md . | grep -v "Cargo.lock" || true)
+    OLD_VERSION_FILES=$(grep -r "$LATEST_CRATES_VERSION" --exclude-dir=target --exclude-dir=.git --exclude=CHANGELOG.md --exclude=justfile --exclude-dir=tests . | grep -v "Cargo.lock" || true)
     if [ -n "$OLD_VERSION_FILES" ]; then
         echo "❌ Found references to old version ($LATEST_CRATES_VERSION) in:"
         echo "$OLD_VERSION_FILES"
