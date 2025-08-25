@@ -1,11 +1,19 @@
+set positional-arguments
+
 # List all just recipes
 list:
     just --list
 
 # Generate README.md from lib.rs
-readme:
-    @which cargo-readme || cargo binstall cargo-readme
-    cargo readme --output README.md
+readme watch="":
+    #!/usr/bin/env bash
+    set -euo pipefail
+    which cargo-readme || cargo binstall cargo-readme
+    if [ "{{watch}}" == "--watch" ]; then
+        watchexec --exts rs -- cargo readme --output README.md
+    else
+        cargo readme --output README.md
+    fi
 
 # Serve and watch documentation
 docs:

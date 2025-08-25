@@ -1,4 +1,4 @@
-use core::error::Error;
+use core::fmt::{Debug, Display};
 use core::panic::UnwindSafe;
 
 #[doc(hidden)]
@@ -43,7 +43,7 @@ impl<'a> AsDynError<'a> for dyn Error + Send + Sync + UnwindSafe + 'a {
 
 #[doc(hidden)]
 pub trait Sealed {}
-impl<T: Error> Sealed for T {}
+impl<T: Debug + Display> Sealed for T {}
 impl Sealed for dyn Error + '_ {}
 impl Sealed for dyn Error + Send + '_ {}
 impl Sealed for dyn Error + Send + Sync + '_ {}

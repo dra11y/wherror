@@ -22,7 +22,9 @@ wherror implements **the most requested community features**:
 | **Drop-in replacement** for existing code | ✅ | ✅ | Zero migration effort |
 | **Automatically use `Debug` as `Display`** with `#[error(debug)]` | ✅ | ❌ | [#172 - not planned!][thiserror#172] |
 | **Call-site location tracking** | ✅ | ❌ | [#142 - 17👍 since 2021][thiserror#142] |
-| **Enhanced ergonomics** (`Box<T>` unwrapping, `.location()` method) | ✅ | ❌ | wherror enhancements |
+| **`#[from] T` relaxed from `Error` to `Debug + Display`** | ✅ | ❌ | wherror enhancements |
+| **Automatic `Box<T>` unwrapping** | ✅ | ❌ | wherror enhancements |
+| **`.location()` method** | ✅ | ❌ | wherror enhancements |
 
 Use wherror when you need these features today, with the same reliable API you know and love.
 
