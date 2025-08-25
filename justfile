@@ -1,18 +1,31 @@
+# List all just recipes
+list:
+    just --list
+
+# Generate README.md from lib.rs
 readme:
     @which cargo-readme || cargo binstall cargo-readme
     cargo readme --output README.md
 
+# Serve and watch documentation
 docs:
     cargo doc --open
     watchexec --exts rs -- cargo doc
 
+# Run tests
 test:
     cargo test
 
+# Run clippy and cargo fmt
 fix:
     cargo clippy --fix --allow-dirty --allow-staged -- -D warnings
     cargo fmt --all
 
+# Publish workspace to crates.io
+publish *args: preflight
+    cargo +nightly publish -Z package-workspace --package wherror-impl --package wherror {{args}}
+
+# Preflight checks before publishing
 preflight: test fix readme
     #!/usr/bin/env bash
     set -euo pipefail
@@ -77,6 +90,3 @@ preflight: test fix readme
     fi
 
     echo "✅ All preflight checks passed! Ready to publish version $CURRENT_VERSION"
-
-publish *args: preflight
-    cargo +nightly publish -Z package-workspace --package wherror-impl --package wherror {{args}}

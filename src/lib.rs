@@ -495,7 +495,7 @@
 //! ### Attribution
 //!
 //! <sup>
-//! Fork of <a href="https://github.com/dtolnay/thiserror">thiserror</a> by David Tolnay,
+//! Fork of <a href="https://github.com/dra11y/wherror">thiserror</a> by David Tolnay,
 //! with location support by <a href="https://github.com/onlycs">Angad Tendulkar</a>
 //! from <a href="https://github.com/dtolnay/thiserror/pull/291">thiserror#291</a>.
 //! </sup>
