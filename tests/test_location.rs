@@ -81,15 +81,6 @@ pub struct NoLocationError {
     other: io::Error,
 }
 
-#[derive(Error, Debug)]
-enum NoLocationEnum {
-    #[error("No location variant")]
-    Test {
-        #[from]
-        other: io::Error,
-    },
-}
-
 // Test enum with mixed variants - some with location, some without
 #[derive(Error, Debug)]
 enum MixedLocationEnum {

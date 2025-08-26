@@ -119,8 +119,16 @@ fn from_field<'a, 'b>(fields: &'a [Field<'b>]) -> Option<&'a Field<'b>> {
 
 fn source_field<'a, 'b>(fields: &'a [Field<'b>]) -> Option<&'a Field<'b>> {
     for field in fields {
-        if field.attrs.from.is_some() || field.attrs.source.is_some() {
+        if field.attrs.source.is_some() {
             return Some(field);
+        }
+    }
+    // Back-compat: treat #[from] as source unless opted-out with #[from(no_source)].
+    for field in fields {
+        if let Some(from) = field.attrs.from {
+            if !from.no_source {
+                return Some(field);
+            }
         }
     }
     for field in fields {

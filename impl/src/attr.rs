@@ -41,6 +41,7 @@ pub struct Source<'a> {
 pub struct From<'a> {
     pub original: &'a Attribute,
     pub span: Span,
+    pub no_source: bool,
 }
 
 #[derive(Copy, Clone)]
@@ -114,15 +115,33 @@ pub fn get(input: &[Attribute]) -> Result<Attrs> {
             }
             attrs.location = Some(attr);
         } else if attr.path().is_ident("from") {
-            match attr.meta {
-                Meta::Path(_) => {}
-                Meta::List(_) | Meta::NameValue(_) => {
-                    // Assume this is meant for derive_more crate or something.
-                    continue;
-                }
-            }
             if attrs.from.is_some() {
                 return Err(Error::new_spanned(attr, "duplicate #[from] attribute"));
+            }
+            // Support optional flags: #[from(no_source)]
+            let mut no_source = false;
+            match &attr.meta {
+                Meta::Path(_) => {}
+                Meta::List(_) => {
+                    mod kw {
+                        syn::custom_keyword!(no_source);
+                    }
+                    attr.parse_args_with(|input: ParseStream| {
+                        while !input.is_empty() {
+                            if input.peek(kw::no_source) {
+                                let _ = input.parse::<kw::no_source>()?;
+                                no_source = true;
+                            } else {
+                                return Err(input.error("unsupported option in #[from(...)]"));
+                            }
+                            let _ = input.parse::<Option<Token![,]>>()?;
+                        }
+                        Ok(())
+                    })?;
+                }
+                Meta::NameValue(_) => {
+                    // Assume meant for other crates; ignore.
+                }
             }
             let span = (attr.pound_token.span)
                 .join(attr.bracket_token.span.join())
@@ -130,6 +149,7 @@ pub fn get(input: &[Attribute]) -> Result<Attrs> {
             attrs.from = Some(From {
                 original: attr,
                 span,
+                no_source,
             });
         }
     }

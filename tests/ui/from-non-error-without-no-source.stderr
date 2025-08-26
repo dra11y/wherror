@@ -1,0 +1,22 @@
+error[E0599]: the method `as_dyn_error` exists for reference `&NotErrorWithoutNoSource`, but its trait bounds were not satisfied
+ --> tests/ui/from-non-error-without-no-source.rs:12:9
+  |
+ 7 | struct NotErrorWithoutNoSource;
+   | ------------------------------ doesn't satisfy `NotErrorWithoutNoSource: AsDynError<'_>` or `NotErrorWithoutNoSource: std::error::Error`
+...
+12 |     Bad(#[from] NotErrorWithoutNoSource),
+   |         ^^^^^^^ method cannot be called on `&NotErrorWithoutNoSource` due to unsatisfied trait bounds
+   |
+   = note: the following trait bounds were not satisfied:
+           `NotErrorWithoutNoSource: std::error::Error`
+           which is required by `NotErrorWithoutNoSource: AsDynError<'_>`
+           `&NotErrorWithoutNoSource: std::error::Error`
+           which is required by `&NotErrorWithoutNoSource: AsDynError<'_>`
+note: the trait `std::error::Error` must be implemented
+  --> $RUST/core/src/error.rs
+   |
+   | pub trait Error: Debug + Display {
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   = help: items from traits can only be used if the trait is implemented and in scope
+   = note: the following trait defines an item `as_dyn_error`, perhaps you need to implement it:
+           candidate #1: `AsDynError`

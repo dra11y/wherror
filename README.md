@@ -22,7 +22,7 @@ wherror implements **the most requested community features**:
 | **Drop-in replacement** for existing code | ✅ | ✅ | Zero migration effort |
 | **Automatically use `Debug` as `Display`** with `#[error(debug)]` | ✅ | ❌ | [#172 - not planned!][thiserror#172] |
 | **Call-site location tracking** | ✅ | ❌ | [#142 - 17👍 since 2021][thiserror#142] |
-| **`#[from] T` relaxed from `Error` to `Debug + Display`** | ✅ | ❌ | wherror enhancements |
+| **`#[from(no_source)] T where T: !Error + Debug + Display`** | ✅ | ❌ | wherror enhancements |
 | **Automatic `Box<T>` unwrapping** | ✅ | ❌ | wherror enhancements |
 | **`.location()` method** | ✅ | ❌ | wherror enhancements |
 
@@ -104,6 +104,10 @@ pub enum DataStoreError {
     },
     #[error("the data for key `{0}` is not available")]
     Redaction(String),
+    // ✨ Use #[from(no_source)] for non-Error types, e.g. `String`!
+    // But you should only have one variant with `String`.
+    // If that's too lax, then don't use `String` as an error type!
+    String(#[from(no_source)] String),
     #[error("invalid header (expected {expected:?}, found {found:?})")]
     InvalidHeader { expected: String, found: String },
     // ✨ These use Debug formatting automatically - no #[error("...")] needed!
@@ -246,6 +250,23 @@ thiserror API compatibility. All existing thiserror code works unchanged.
   #     Ok(())
   # }
   ```
+
+  For non-Error types, use `#[from(no_source)]`:
+
+  ```rust
+  # use wherror::Error;
+  #
+  #[derive(Error, Debug)]
+  pub enum MyError {
+      #[error("HTTP {0}")]
+      Http(#[from(no_source)] u16),
+
+      #[error("IO: {0}")]
+      Io(#[from] std::io::Error),
+  }
+  ```
+
+  **Fixing compile errors**: If you get `error[E0599]: the method as_dyn_error exists for reference &T, but its trait bounds were not satisfied`, for a field, try changing its `#[from]` to `#[from(no_source)]`.
 
 - Use `#[error(debug)]` as a fallback to automatically generate Display
   implementations using the Debug format. This eliminates boilerplate when your

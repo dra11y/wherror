@@ -80,3 +80,20 @@ fn test_not_source() {
     assert_eq!(error.to_string(), "S ==> D");
     assert!(error.source().is_none());
 }
+
+#[test]
+fn test_from_non_error_no_source() {
+    #[derive(Debug)]
+    struct Status(#[allow(unused)] u16);
+
+    #[derive(Error, Debug)]
+    #[error("...")]
+    enum AppError {
+        #[error("ws: {0:?}")]
+        WebSocket(#[from(no_source)] Status),
+    }
+
+    let e = AppError::WebSocket(Status(1011));
+    assert_eq!(e.to_string(), "ws: Status(1011)");
+    assert!(StdError::source(&e).is_none());
+}
