@@ -103,6 +103,9 @@
 //!     },
 //!     #[error("the data for key `{0}` is not available")]
 //!     Redaction(String),
+//!     // ✨ Use #[from(no_source)] for non-Error types, e.g. `String`!
+//!     // Obviously, you can only have **one** variant with `#[from(no_source)] T` or `#[from] T`.
+//!     String(#[from(no_source)] String),
 //!     #[error("invalid header (expected {expected:?}, found {found:?})")]
 //!     InvalidHeader { expected: String, found: String },
 //!     // ✨ These use Debug formatting automatically - no #[error("...")] needed!

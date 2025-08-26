@@ -123,7 +123,6 @@ fn source_field<'a, 'b>(fields: &'a [Field<'b>]) -> Option<&'a Field<'b>> {
             return Some(field);
         }
     }
-    // Back-compat: treat #[from] as source unless opted-out with #[from(no_source)].
     for field in fields {
         if let Some(from) = field.attrs.from {
             if !from.no_source {

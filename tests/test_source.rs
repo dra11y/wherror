@@ -87,13 +87,16 @@ fn test_from_non_error_no_source() {
     struct Status(#[allow(unused)] u16);
 
     #[derive(Error, Debug)]
-    #[error("...")]
+    #[error(debug)]
     enum AppError {
-        #[error("ws: {0:?}")]
         WebSocket(#[from(no_source)] Status),
+        String(#[from(no_source)] String),
     }
 
-    let e = AppError::WebSocket(Status(1011));
-    assert_eq!(e.to_string(), "ws: Status(1011)");
-    assert!(StdError::source(&e).is_none());
+    let e1 = AppError::WebSocket(Status(1011));
+    let e2: AppError = "test error".to_string().into();
+    assert_eq!(e1.to_string(), "WebSocket(Status(1011))");
+    assert!(StdError::source(&e1).is_none());
+    assert_eq!(e2.to_string(), r#"String("test error")"#);
+    assert!(StdError::source(&e2).is_none());
 }

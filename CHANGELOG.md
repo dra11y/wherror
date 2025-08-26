@@ -5,7 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [2.3.0] - 2025-08-25
+## [2.3.1] - 2025-08-25
+
+### Added
+- **New**: `#[from(no_source)]` attribute for non-Error types to generate From without source chaining
+
+### Fixed
+- **Fixed**: `#[from]` reverted to pre-2.3.0 behavior; on non-Error types, now requires explicit `#[from(no_source)]` (2.3.0 approach **cannot** work due to proc macro type inference limitations!)
+
+## ~~[2.3.0] - 2025-08-25~~ Yanked
 
 ### Changed
 - **Improved**: derive `#[from]` now relaxed to allow `T: Display + Debug` instead of `T: Error`

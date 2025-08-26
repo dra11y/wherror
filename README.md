@@ -105,8 +105,7 @@ pub enum DataStoreError {
     #[error("the data for key `{0}` is not available")]
     Redaction(String),
     // ✨ Use #[from(no_source)] for non-Error types, e.g. `String`!
-    // But you should only have one variant with `String`.
-    // If that's too lax, then don't use `String` as an error type!
+    // Obviously, you can only have **one** variant with `#[from(no_source)] T` or `#[from] T`.
     String(#[from(no_source)] String),
     #[error("invalid header (expected {expected:?}, found {found:?})")]
     InvalidHeader { expected: String, found: String },
@@ -266,7 +265,7 @@ thiserror API compatibility. All existing thiserror code works unchanged.
   }
   ```
 
-  **Fixing compile errors**: If you get `error[E0599]: the method as_dyn_error exists for reference &T, but its trait bounds were not satisfied`, for a field, try changing its `#[from]` to `#[from(no_source)]`.
+  **Fixing compile errors**: If you see `error[E0599]: the method as_dyn_error exists for reference &T, but its trait bounds were not satisfied`, use `#[from(no_source)]` for non-Error types.
 
 - Use `#[error(debug)]` as a fallback to automatically generate Display
   implementations using the Debug format. This eliminates boilerplate when your
