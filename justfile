@@ -20,9 +20,13 @@ docs:
     cargo doc --open
     watchexec --exts rs -- cargo doc
 
+# Bless (re-generate .stderr files for UI tests)
+bless:
+    TRYBUILD=overwrite cargo test ui
+
 # Run tests
-test:
-    cargo test
+test *args:
+    cargo test "{{ args }}"
 
 # Run clippy and cargo fmt
 fix:
